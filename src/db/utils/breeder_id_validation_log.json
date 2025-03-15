@@ -1,0 +1,217 @@
+{
+  "totalDogs": 8794,
+  "validUUIDCount": 8764,
+  "invalidUUIDCount": 30,
+  "details": [
+    {
+      "dogId": "0fb5a6d0-1a68-11ee-a30d-533d22fcf85e",
+      "dogName": "VISTA OT GEORGIEV I SIN",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "16df4980-1a65-11ee-99ff-c16381a5015d",
+      "dogName": "CENTA VOM ALTEN ROTHENBERG",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "1cbc6a50-1a64-11ee-808f-f1fb778e3cf4",
+      "dogName": "BRETA OT SWARKO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "1dac47c0-1a63-11ee-8786-9db3bcae5c9b",
+      "dogName": "FOXY VOM SBORWALD",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "1f25d1d0-1a67-11ee-a29c-2f00eb4f80e4",
+      "dogName": "VITUS VOM SONNERBACH",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "268c74a0-1a66-11ee-84c9-612cf552e36f",
+      "dogName": "HORA II V.D DACHSWIESE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "30d92a60-1a68-11ee-a898-79fb8180fc42",
+      "dogName": "AARON VOM MOBI DIK",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "464d92c0-1a65-11ee-a146-01d502b39b9e",
+      "dogName": "WINO VOM TIEFEISEN",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "4d7c30c0-1a67-11ee-901f-7987ac5cdbab",
+      "dogName": "DELE V.D DACHSWIESE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "53134670-1a64-11ee-acd8-db9eaae0b9ca",
+      "dogName": "CARLO VOM ASPARUHOV",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "54c654a0-1a68-11ee-bd5d-43837f55bb6a",
+      "dogName": "APRIL V.BELMEKEN",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "570519a0-1a66-11ee-a5ad-350ef4572caf",
+      "dogName": "ERO III DEL ZEFFIRO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "6ef1a2b0-1a65-11ee-80c6-67f98547f1d2",
+      "dogName": "ONDRA V.D DACHSWIESE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "7633ecf0-1a67-11ee-85e9-bd14e461bd6b",
+      "dogName": "LUCHS III V.D WUPPERAUE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "771bde60-1a68-11ee-95fc-014e412d073f",
+      "dogName": "BENN VOM TANGRA",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "7ee013e0-1a60-11ee-8451-ebb6493ae7cf",
+      "dogName": "MAX VOM SBORWALD",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "7f28f3f0-1a60-11ee-871e-5ff73aaf9cc2",
+      "dogName": "MERRY BET VOM SBORWALD",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "91b52f30-1a63-11ee-bf70-498f0a9b1d27",
+      "dogName": "GRAF OT ISKARO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "9da39900-1a65-11ee-bc4a-3196dd1ab9b6",
+      "dogName": "ERRO III DEL ZEFFIRO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "a2d420d0-1a66-11ee-959b-633ede5aba63",
+      "dogName": "VELLA VOM GLATZENSTEIN",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "ac34f6b0-1a68-11ee-ad79-35ebf1d3cccd",
+      "dogName": "INKE V.D DACHSWIESE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "afd171b0-1a67-11ee-a2e9-67dedf8d9f49",
+      "dogName": "HONDA II DEL ZEFFIRO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "c0f32b50-1a63-11ee-ac77-f956dd69f23d",
+      "dogName": "CORALEE VOM SBORWALD",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "c28a1020-1a65-11ee-8e17-c593b00375b6",
+      "dogName": "AMBRA OT SWARKO",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "c8188d70-1a66-11ee-80f8-df360cf32c20",
+      "dogName": "BLITZ VOM BAYERWALD",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "e02d8920-1a67-11ee-9cfb-07493e352ccf",
+      "dogName": "GERRO IV VOM DONAUECK",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "e985aed0-1a65-11ee-8939-7f04c5a496cc",
+      "dogName": "ERRO VOM TANGRA",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "eac431d0-1a68-11ee-b72f-631893dee272",
+      "dogName": "OTELLO III VOM BUTERLAND",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "ef751a60-1a63-11ee-84cc-01be976509af",
+      "dogName": "SAPO II V.D DACHSWIESE",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    },
+    {
+      "dogId": "f6351d10-1a66-11ee-9d01-fd4ccdd3a010",
+      "dogName": "UMBRA VOM TIEFEISEN",
+      "breederId": "808b84e0-f41d-11e5-bfe1-cfb246t26264",
+      "isValidUUID": false,
+      "uuidFormat": "non-standard format"
+    }
+  ]
+}

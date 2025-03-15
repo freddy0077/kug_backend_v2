@@ -1,0 +1,622 @@
+{
+  "breedMapContents": [
+    [
+      "dogue de bordeaux",
+      "3b1ea140-0aa5-11ec-9aed-8be9659d76a8"
+    ],
+    [
+      "doguedebordeaux",
+      "3b1ea140-0aa5-11ec-9aed-8be9659d76a8"
+    ],
+    [
+      "dogue_de_bordeaux",
+      "3b1ea140-0aa5-11ec-9aed-8be9659d76a8"
+    ],
+    [
+      "lagotto romagnolo",
+      "419a2040-0d66-11ee-82ea-ed6a72e3c1f0"
+    ],
+    [
+      "lagottoromagnolo",
+      "419a2040-0d66-11ee-82ea-ed6a72e3c1f0"
+    ],
+    [
+      "lagotto_romagnolo",
+      "419a2040-0d66-11ee-82ea-ed6a72e3c1f0"
+    ],
+    [
+      "caucasian shepherd",
+      "58135ca0-45c7-11eb-8a07-39f65cc0268e"
+    ],
+    [
+      "caucasianshepherd",
+      "58135ca0-45c7-11eb-8a07-39f65cc0268e"
+    ],
+    [
+      "caucasian_shepherd",
+      "58135ca0-45c7-11eb-8a07-39f65cc0268e"
+    ],
+    [
+      "french bulldog",
+      "639e4910-8eb2-11e6-847a-a73e9ea50860"
+    ],
+    [
+      "frenchbulldog",
+      "639e4910-8eb2-11e6-847a-a73e9ea50860"
+    ],
+    [
+      "french_bulldog",
+      "639e4910-8eb2-11e6-847a-a73e9ea50860"
+    ],
+    [
+      "ainu dog",
+      "77fb1970-f41d-11e5-a162-0f90ef11cbeb"
+    ],
+    [
+      "ainudog",
+      "77fb1970-f41d-11e5-a162-0f90ef11cbeb"
+    ],
+    [
+      "ainu_dog",
+      "77fb1970-f41d-11e5-a162-0f90ef11cbeb"
+    ],
+    [
+      "test breed",
+      "8443f8c0-0e6e-11eb-9021-6b52892f0522"
+    ],
+    [
+      "testbreed",
+      "8443f8c0-0e6e-11eb-9021-6b52892f0522"
+    ],
+    [
+      "test_breed",
+      "8443f8c0-0e6e-11eb-9021-6b52892f0522"
+    ],
+    [
+      "miniature poodle",
+      "992fb630-b1a1-11ee-8189-8388b6acdc1f"
+    ],
+    [
+      "miniaturepoodle",
+      "992fb630-b1a1-11ee-8189-8388b6acdc1f"
+    ],
+    [
+      "miniature_poodle",
+      "992fb630-b1a1-11ee-8189-8388b6acdc1f"
+    ],
+    [
+      "cavalier king charles spaniel",
+      "af5f3190-90bc-11ec-8172-b9aff8cb0b9e"
+    ],
+    [
+      "cavalierkingcharlesspaniel",
+      "af5f3190-90bc-11ec-8172-b9aff8cb0b9e"
+    ],
+    [
+      "cavalier_king_charles_spaniel",
+      "af5f3190-90bc-11ec-8172-b9aff8cb0b9e"
+    ],
+    [
+      "czechoslovakian wolfdog",
+      "bbdad550-0d67-11ee-ad39-c767f39e6f74"
+    ],
+    [
+      "czechoslovakianwolfdog",
+      "bbdad550-0d67-11ee-ad39-c767f39e6f74"
+    ],
+    [
+      "czechoslovakian_wolfdog",
+      "bbdad550-0d67-11ee-ad39-c767f39e6f74"
+    ],
+    [
+      "shih tzu",
+      "efb17b60-b745-11ea-8529-dd1f47e26170"
+    ],
+    [
+      "shihtzu",
+      "efb17b60-b745-11ea-8529-dd1f47e26170"
+    ],
+    [
+      "shih_tzu",
+      "efb17b60-b745-11ea-8529-dd1f47e26170"
+    ],
+    [
+      "chow chow",
+      "05e33ec0-014b-11ee-b7ff-c595e2066483"
+    ],
+    [
+      "chowchow",
+      "05e33ec0-014b-11ee-b7ff-c595e2066483"
+    ],
+    [
+      "chow_chow",
+      "05e33ec0-014b-11ee-b7ff-c595e2066483"
+    ],
+    [
+      "central asian shepherd",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0123"
+    ],
+    [
+      "centralasianshepherd",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0123"
+    ],
+    [
+      "central_asian_shepherd",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0123"
+    ],
+    [
+      "german shepherd dog long coat",
+      "5c255b20-91ba-11ed-9502-b398d04efe61"
+    ],
+    [
+      "germanshepherddoglongcoat",
+      "5c255b20-91ba-11ed-9502-b398d04efe61"
+    ],
+    [
+      "german_shepherd_dog_long_coat",
+      "5c255b20-91ba-11ed-9502-b398d04efe61"
+    ],
+    [
+      "africanis",
+      "688f9e80-f41d-11e5-a9a5-219555e9c6b5"
+    ],
+    [
+      "toy poodle",
+      "7c76a610-b1a1-11ee-b5f4-398b22382b47"
+    ],
+    [
+      "toypoodle",
+      "7c76a610-b1a1-11ee-b5f4-398b22382b47"
+    ],
+    [
+      "toy_poodle",
+      "7c76a610-b1a1-11ee-b5f4-398b22382b47"
+    ],
+    [
+      "cane corso",
+      "838a9bd0-2989-11e6-a83e-0540ae6a36dd"
+    ],
+    [
+      "canecorso",
+      "838a9bd0-2989-11e6-a83e-0540ae6a36dd"
+    ],
+    [
+      "cane_corso",
+      "838a9bd0-2989-11e6-a83e-0540ae6a36dd"
+    ],
+    [
+      "american bulldog",
+      "9b16eff0-f41d-11e5-9a23-6fc0ce3014bb"
+    ],
+    [
+      "americanbulldog",
+      "9b16eff0-f41d-11e5-9a23-6fc0ce3014bb"
+    ],
+    [
+      "american_bulldog",
+      "9b16eff0-f41d-11e5-9a23-6fc0ce3014bb"
+    ],
+    [
+      "american mastiff",
+      "b0203900-f41d-11e5-9d1c-bdef5470d661"
+    ],
+    [
+      "americanmastiff",
+      "b0203900-f41d-11e5-9d1c-bdef5470d661"
+    ],
+    [
+      "american_mastiff",
+      "b0203900-f41d-11e5-9d1c-bdef5470d661"
+    ],
+    [
+      "american tundra shepherd dog",
+      "cbfa5a60-f41d-11e5-8ff4-e10182f0a68a"
+    ],
+    [
+      "americantundrashepherddog",
+      "cbfa5a60-f41d-11e5-8ff4-e10182f0a68a"
+    ],
+    [
+      "american_tundra_shepherd_dog",
+      "cbfa5a60-f41d-11e5-8ff4-e10182f0a68a"
+    ],
+    [
+      "belgian shepherd",
+      "fd20abd0-095a-11e6-8bad-a18929cb567a"
+    ],
+    [
+      "belgianshepherd",
+      "fd20abd0-095a-11e6-8bad-a18929cb567a"
+    ],
+    [
+      "belgian_shepherd",
+      "fd20abd0-095a-11e6-8bad-a18929cb567a"
+    ],
+    [
+      "labrador retriever",
+      "400cee10-31b1-11ec-aa1d-613d8b8563d2"
+    ],
+    [
+      "labradorretriever",
+      "400cee10-31b1-11ec-aa1d-613d8b8563d2"
+    ],
+    [
+      "labrador_retriever",
+      "400cee10-31b1-11ec-aa1d-613d8b8563d2"
+    ],
+    [
+      "white swiss shepherd",
+      "4db07470-e077-11e5-8a95-c336206736d5"
+    ],
+    [
+      "whiteswissshepherd",
+      "4db07470-e077-11e5-8a95-c336206736d5"
+    ],
+    [
+      "white_swiss_shepherd",
+      "4db07470-e077-11e5-8a95-c336206736d5"
+    ],
+    [
+      "afghan hound",
+      "5e697600-f41d-11e5-be9a-b9f4560a7ade"
+    ],
+    [
+      "afghanhound",
+      "5e697600-f41d-11e5-be9a-b9f4560a7ade"
+    ],
+    [
+      "afghan_hound",
+      "5e697600-f41d-11e5-be9a-b9f4560a7ade"
+    ],
+    [
+      "pug",
+      "6805f0b0-a85a-11e6-b241-8f3c26f2bd92"
+    ],
+    [
+      "german shepherd dog",
+      "704e5800-11e4-11e6-be9d-152cfbf5784a"
+    ],
+    [
+      "germanshepherddog",
+      "704e5800-11e4-11e6-be9d-152cfbf5784a"
+    ],
+    [
+      "german_shepherd_dog",
+      "704e5800-11e4-11e6-be9d-152cfbf5784a"
+    ],
+    [
+      "dogo argentino",
+      "84ce2300-e172-11ea-89af-85111b0e995f"
+    ],
+    [
+      "dogoargentino",
+      "84ce2300-e172-11ea-89af-85111b0e995f"
+    ],
+    [
+      "dogo_argentino",
+      "84ce2300-e172-11ea-89af-85111b0e995f"
+    ],
+    [
+      "american bull molosser",
+      "a4c45ce0-f41d-11e5-be48-6b79500a2159"
+    ],
+    [
+      "americanbullmolosser",
+      "a4c45ce0-f41d-11e5-be48-6b79500a2159"
+    ],
+    [
+      "american_bull_molosser",
+      "a4c45ce0-f41d-11e5-be48-6b79500a2159"
+    ],
+    [
+      "rottweiler",
+      "baeb07e0-2b29-11e6-9c5a-89f90bf4a042"
+    ],
+    [
+      "white house swiss shepherd dog",
+      "ea0cf000-e054-11e5-b95c-71db87b16b29"
+    ],
+    [
+      "whitehouseswissshepherddog",
+      "ea0cf000-e054-11e5-b95c-71db87b16b29"
+    ],
+    [
+      "white_house_swiss_shepherd_dog",
+      "ea0cf000-e054-11e5-b95c-71db87b16b29"
+    ],
+    [
+      "yorkshire terrier",
+      "3b92fdc0-3aa2-11ed-97e6-712984225c36"
+    ],
+    [
+      "yorkshireterrier",
+      "3b92fdc0-3aa2-11ed-97e6-712984225c36"
+    ],
+    [
+      "yorkshire_terrier",
+      "3b92fdc0-3aa2-11ed-97e6-712984225c36"
+    ],
+    [
+      "abruzzenhund",
+      "4bc29a00-f41d-11e5-88db-63910ca4cc68"
+    ],
+    [
+      "affenpinscher",
+      "53df6da0-f41d-11e5-a472-1d2136bcf5ed"
+    ],
+    [
+      "bernese mountain dog",
+      "5ee21650-98da-11ec-903d-bb965db38c8a"
+    ],
+    [
+      "bernesemountaindog",
+      "5ee21650-98da-11ec-903d-bb965db38c8a"
+    ],
+    [
+      "bernese_mountain_dog",
+      "5ee21650-98da-11ec-903d-bb965db38c8a"
+    ],
+    [
+      "aidi",
+      "71e01600-f41d-11e5-9736-8da1e5c97c5c"
+    ],
+    [
+      "airedale terrier",
+      "808b84e0-f41d-11e5-bfe1-cfb1c6d8cd76"
+    ],
+    [
+      "airedaleterrier",
+      "808b84e0-f41d-11e5-bfe1-cfb1c6d8cd76"
+    ],
+    [
+      "airedale_terrier",
+      "808b84e0-f41d-11e5-bfe1-cfb1c6d8cd76"
+    ],
+    [
+      "alaskan husky",
+      "8f421a10-f41d-11e5-96b1-c720d2e38982"
+    ],
+    [
+      "alaskanhusky",
+      "8f421a10-f41d-11e5-96b1-c720d2e38982"
+    ],
+    [
+      "alaskan_husky",
+      "8f421a10-f41d-11e5-96b1-c720d2e38982"
+    ],
+    [
+      "saluki",
+      "a0fa4ad0-0d66-11ee-bc66-110eaf8006c4"
+    ],
+    [
+      "english pointer",
+      "b80f9390-bbd4-11ee-aeeb-932a53cc2248"
+    ],
+    [
+      "englishpointer",
+      "b80f9390-bbd4-11ee-aeeb-932a53cc2248"
+    ],
+    [
+      "english_pointer",
+      "b80f9390-bbd4-11ee-aeeb-932a53cc2248"
+    ],
+    [
+      "presa canario",
+      "dca4c480-f41d-11e5-9fa3-79c490e5a5b7"
+    ],
+    [
+      "presacanario",
+      "dca4c480-f41d-11e5-9fa3-79c490e5a5b7"
+    ],
+    [
+      "presa_canario",
+      "dca4c480-f41d-11e5-9fa3-79c490e5a5b7"
+    ],
+    [
+      "boerboel",
+      "fd20abd0-095a-11e6-8bad-a18929eb511a"
+    ],
+    [
+      "golden retriever",
+      "183fb490-90b8-11ec-bd1a-836e2d3f45cf"
+    ],
+    [
+      "goldenretriever",
+      "183fb490-90b8-11ec-bd1a-836e2d3f45cf"
+    ],
+    [
+      "golden_retriever",
+      "183fb490-90b8-11ec-bd1a-836e2d3f45cf"
+    ],
+    [
+      "american cocker spaniel",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0843"
+    ],
+    [
+      "americancockerspaniel",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0843"
+    ],
+    [
+      "american_cocker_spaniel",
+      "4235ba00-b746-11ea-baa5-b5ccf6df0843"
+    ],
+    [
+      "standard poodle",
+      "5e3ce5c0-c8a5-11eb-ae6c-8b58504d1e97"
+    ],
+    [
+      "standardpoodle",
+      "5e3ce5c0-c8a5-11eb-ae6c-8b58504d1e97"
+    ],
+    [
+      "standard_poodle",
+      "5e3ce5c0-c8a5-11eb-ae6c-8b58504d1e97"
+    ],
+    [
+      "bull mastiff",
+      "6cd74be0-a8c8-11e6-a298-7dc60f6b10d3"
+    ],
+    [
+      "bullmastiff",
+      "6cd74be0-a8c8-11e6-a298-7dc60f6b10d3"
+    ],
+    [
+      "bull_mastiff",
+      "6cd74be0-a8c8-11e6-a298-7dc60f6b10d3"
+    ],
+    [
+      "dobermann",
+      "73f32f90-e172-11ea-914d-e5b93f4387a3"
+    ],
+    [
+      "german spitz (pomeranian)",
+      "81bff560-9668-11ec-945a-07ea08ed7b75"
+    ],
+    [
+      "germanspitz(pomeranian)",
+      "81bff560-9668-11ec-945a-07ea08ed7b75"
+    ],
+    [
+      "german_spitz_(pomeranian)",
+      "81bff560-9668-11ec-945a-07ea08ed7b75"
+    ],
+    [
+      "bulldog",
+      "93268600-caf0-11eb-94f8-43e0e2b15179"
+    ],
+    [
+      "rhodesian ridgeback",
+      "a3d68270-5116-11e6-b530-4fa7425521cd"
+    ],
+    [
+      "rhodesianridgeback",
+      "a3d68270-5116-11e6-b530-4fa7425521cd"
+    ],
+    [
+      "rhodesian_ridgeback",
+      "a3d68270-5116-11e6-b530-4fa7425521cd"
+    ],
+    [
+      "german shorthaird pointer",
+      "b9c644e0-1a5a-11ee-9f49-c5fe059ba4dc"
+    ],
+    [
+      "germanshorthairdpointer",
+      "b9c644e0-1a5a-11ee-9f49-c5fe059ba4dc"
+    ],
+    [
+      "german_shorthaird_pointer",
+      "b9c644e0-1a5a-11ee-9f49-c5fe059ba4dc"
+    ],
+    [
+      "english mastiff",
+      "eb72f950-e3b2-11e6-9fbb-9ff4f9010def"
+    ],
+    [
+      "englishmastiff",
+      "eb72f950-e3b2-11e6-9fbb-9ff4f9010def"
+    ],
+    [
+      "english_mastiff",
+      "eb72f950-e3b2-11e6-9fbb-9ff4f9010def"
+    ],
+    [
+      "malinois",
+      "fd20abd0-095a-11e6-8bad-a28349eb511a"
+    ]
+  ],
+  "dogRowSample": [
+    {
+      "id": "0000a3c0-9133-11eb-b19c-01fd6a65b3e1",
+      "breeder_id": "efb17b60-b745-11ea-8529-dd1f47e26170",
+      "name": "GERAINCA BELIEVE IN LOVE"
+    },
+    {
+      "id": "00288f20-569f-11e8-8760-b5b8b4760933",
+      "breeder_id": "baeb07e0-2b29-11e6-9c5a-89f90bf4a042",
+      "name": "lacky Lug De Burg"
+    },
+    {
+      "id": "002c3950-40bc-11e6-807d-a19b403d889a",
+      "breeder_id": "baeb07e0-2b29-11e6-9c5a-89f90bf4a042",
+      "name": "Corra of Silver Fild KG"
+    },
+    {
+      "id": "00401b30-e5fc-11e6-949c-073a0c579f24",
+      "breeder_id": "eb72f950-e3b2-11e6-9fbb-9ff4f9010def",
+      "name": "Mastif Hill Epensive Thing"
+    },
+    {
+      "id": "0041d660-46dc-11e6-88ec-05a3901b95b3",
+      "breeder_id": "704e5800-11e4-11e6-be9d-152cfbf5784a",
+      "name": "Ibaston od Tiganjice"
+    },
+    {
+      "id": "00516780-2362-11ee-bf2c-45187f6dda32",
+      "breeder_id": "efb17b60-b745-11ea-8529-dd1f47e26170",
+      "name": "WENRICK'S MAN OF DISTINATION"
+    },
+    {
+      "id": "0051da70-ffaa-11eb-a3ae-f74d028f803a",
+      "breeder_id": "838a9bd0-2989-11e6-a83e-0540ae6a36dd",
+      "name": "ELIXIR"
+    },
+    {
+      "id": "00543990-7dd3-11eb-92bf-1b9fd945eca0",
+      "breeder_id": "704e5800-11e4-11e6-be9d-152cfbf5784a",
+      "name": "CIMBA VOM DREAMS KENNEL"
+    },
+    {
+      "id": "0054e9a0-90c0-11ec-9cb4-9971733282c2",
+      "breeder_id": "af5f3190-90bc-11ec-8172-b9aff8cb0b9e",
+      "name": "HAIDI LORGA"
+    },
+    {
+      "id": "0067f520-cebd-11ee-bc6c-058876caf550",
+      "breeder_id": "5c255b20-91ba-11ed-9502-b398d04efe61",
+      "name": "GINGER AUS BUDDYS MEUTE"
+    }
+  ],
+  "breederRowSample": [
+    {
+      "id": "05e33ec0-014b-11ee-b7ff-c595e2066483",
+      "name": "CHOW CHOW"
+    },
+    {
+      "id": "183fb490-90b8-11ec-bd1a-836e2d3f45cf",
+      "name": "GOLDEN RETRIEVER"
+    },
+    {
+      "id": "3b1ea140-0aa5-11ec-9aed-8be9659d76a8",
+      "name": "Dogue de Bordeaux"
+    },
+    {
+      "id": "3b92fdc0-3aa2-11ed-97e6-712984225c36",
+      "name": "YORKSHIRE TERRIER"
+    },
+    {
+      "id": "400cee10-31b1-11ec-aa1d-613d8b8563d2",
+      "name": "Labrador Retriever"
+    },
+    {
+      "id": "419a2040-0d66-11ee-82ea-ed6a72e3c1f0",
+      "name": "Lagotto Romagnolo"
+    },
+    {
+      "id": "4235ba00-b746-11ea-baa5-b5ccf6df0123",
+      "name": "Central Asian Shepherd"
+    },
+    {
+      "id": "4235ba00-b746-11ea-baa5-b5ccf6df0843",
+      "name": "American Cocker Spaniel"
+    },
+    {
+      "id": "4bc29a00-f41d-11e5-88db-63910ca4cc68",
+      "name": "Abruzzenhund"
+    },
+    {
+      "id": "4db07470-e077-11e5-8a95-c336206736d5",
+      "name": "White Swiss Shepherd "
+    }
+  ]
+}

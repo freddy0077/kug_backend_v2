@@ -1,0 +1,76 @@
+# Query to test breeds functionality
+query GetBreeds {
+  breeds {
+    totalCount
+    hasMore
+    items {
+      id
+      name
+      group
+      origin
+      description
+      temperament
+      average_lifespan
+      average_height
+      average_weight
+      createdAt
+      updatedAt
+    }
+  }
+}
+
+# Get a specific breed by ID
+query GetBreedById($id: ID!) {
+  breed(id: $id) {
+    id
+    name
+    group
+    description
+    dogs {
+      id
+      name
+    }
+  }
+}
+
+# Get a dog with its breed information
+query GetDogWithBreed($id: ID!) {
+  dog(id: $id) {
+    id
+    name
+    breed
+    breedObj {
+      id
+      name
+      group
+      origin
+    }
+    gender
+    dateOfBirth
+  }
+}
+
+# Create a new breed
+mutation CreateNewBreed($input: CreateBreedInput!) {
+  createBreed(input: $input) {
+    id
+    name
+    group
+    origin
+    description
+  }
+}
+
+# Update a dog with a new breed
+mutation UpdateDogBreed($id: ID!, $input: UpdateDogInput!) {
+  updateDog(id: $id, input: $input) {
+    id
+    name
+    breed
+    breedId
+    breedObj {
+      id
+      name
+    }
+  }
+}
