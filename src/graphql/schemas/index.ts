@@ -721,7 +721,6 @@ const typeDefs = gql`
     dateOfBirth: DateTime!  # Must be a valid Date, never undefined
     dateOfDeath: DateTime
     color: String
-    registrationNumber: String!
     microchipNumber: String
     titles: [String]
     isNeutered: Boolean

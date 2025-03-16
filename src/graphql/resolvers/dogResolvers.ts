@@ -28,7 +28,7 @@ interface CreateDogInput {
   dateOfDeath?: Date;
   height?: number;
   weight?: number;
-  registrationNumber?: string;
+  // registrationNumber is now auto-generated
   microchipNumber?: string;
   isNeutered?: boolean;
   ownerId?: string;  // Changed from number to string for UUID
@@ -77,6 +77,33 @@ async function fetchDogPedigreeRecursive(dogId: string, generations: number, cur
   }
   
   return result;
+}
+
+// Helper function to generate a unique registration number in KUG format
+async function generateRegistrationNumber(): Promise<string> {
+  // Get the highest current number
+  const maxDog = await db.Dog.findOne({
+    order: [['registrationNumber', 'DESC']], // Use the model's attribute name (TypeScript friendly)
+    where: {
+      registrationNumber: { // Use the model's attribute name (TypeScript friendly)
+        [Op.like]: 'KUG %'
+      }
+    }
+  });
+  
+  let nextNumber = 1; // Default starting number
+  
+  if (maxDog && maxDog.registrationNumber) {
+    // Extract the numeric part and increment
+    const matches = maxDog.registrationNumber.match(/KUG (\d+)/);
+    if (matches && matches[1]) {
+      const currentNumber = parseInt(matches[1], 10);
+      nextNumber = isNaN(currentNumber) ? 1 : currentNumber + 1;
+    }
+  }
+  
+  // Format with leading zeros to 7 digits
+  return `KUG ${nextNumber.toString().padStart(7, '0')}`;
 }
 
 const dogResolvers = {
@@ -216,9 +243,12 @@ const dogResolvers = {
       const user = await checkAuth(context);
       try {
         // Validate required fields
-        if (!input.name || !input.breed || !input.gender || !input.registrationNumber) {
+        if (!input.name || !input.breed || !input.gender) {
           throw new Error('INVALID_DOG_DATA');
         }
+        
+        // Generate a unique registration number
+        const registrationNumber = await generateRegistrationNumber();
 
         // If breedId is provided, verify it exists
         if (input.breedId) {
@@ -249,10 +279,11 @@ const dogResolvers = {
         // Generate UUID for the dog
         const dogId = uuidv4();
         
-        // Create the dog with the generated UUID
+        // Create the dog with the generated UUID and registration number
         const newDog = await db.Dog.create({
           ...input as any,
-          id: dogId
+          id: dogId,
+          registrationNumber: registrationNumber
         });
 
         // Add ownership association if ownerId is provided
