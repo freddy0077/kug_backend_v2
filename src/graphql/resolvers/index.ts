@@ -10,6 +10,7 @@ import { logResolvers } from './logResolvers';
 import { competitionResultResolvers } from './competitionResultResolvers';
 import { breedingResolvers } from './breedingResolvers';
 import breedResolvers from './breedResolvers';
+import litterResolvers from './litterResolvers';
 import { dateTimeScalar } from './scalarResolvers';
 import db from '../../db/models';
 
@@ -31,6 +32,7 @@ const resolvers: IResolvers = {
     ...competitionResultResolvers.Query,
     ...breedingResolvers.Query,
     ...breedResolvers.Query,
+    ...litterResolvers.Query,
   },
   
   // Merge Mutation resolvers
@@ -46,6 +48,7 @@ const resolvers: IResolvers = {
     ...competitionResultResolvers.Mutation,
     ...breedingResolvers.Mutation,
     ...breedResolvers.Mutation,
+    ...litterResolvers.Mutation,
   },
   
   // Type resolvers

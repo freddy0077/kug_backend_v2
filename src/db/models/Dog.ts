@@ -22,6 +22,7 @@ interface DogAttributes {
   mainImageUrl: string | null;
   sireId: string | null;  // Changed from number to string for UUID
   damId: string | null;   // Changed from number to string for UUID
+  litterId: string | null; // Reference to the litter this dog belongs to as a puppy
   createdAt: Date;
   updatedAt: Date;
 }
@@ -49,6 +50,7 @@ class Dog extends Model<DogAttributes, DogCreationAttributes> implements DogAttr
   public mainImageUrl!: string | null;
   public sireId!: string | null;  // Changed from number to string for UUID
   public damId!: string | null;   // Changed from number to string for UUID
+  public litterId!: string | null; // Reference to the litter this dog belongs to as a puppy
   
   // Timestamps
   public readonly createdAt!: Date;
@@ -62,6 +64,7 @@ class Dog extends Model<DogAttributes, DogCreationAttributes> implements DogAttr
     breedObj: Association<Dog, Breed>;
     sire: Association<Dog, Dog>;
     dam: Association<Dog, Dog>;
+    litter: Association<Dog, any>; // Will be associated with Litter model
   };
 
   // Associations
@@ -76,6 +79,12 @@ class Dog extends Model<DogAttributes, DogCreationAttributes> implements DogAttr
     Dog.belongsTo(models.Breed, { 
       as: 'breedObj',
       foreignKey: 'breed_id'
+    });
+    
+    // Litter relationship
+    Dog.belongsTo(models.Litter, {
+      as: 'litter',
+      foreignKey: 'litterId'
     });
     
     // Other associations
@@ -205,6 +214,15 @@ export const initDogModel = (sequelize: Sequelize): typeof Dog => {
         key: 'id',
       },
       field: 'dam_id'
+    },
+    litterId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'Litters',
+        key: 'id',
+      },
+      field: 'litter_id'
     },
     createdAt: {
       type: DataTypes.DATE,

@@ -41,10 +41,22 @@ const typeDefs = gql`
     POINTS
     EVENT_NAME
   }
+  
+  enum DogRole {
+    SIRE
+    DAM
+    BOTH
+  }
 
   enum SortDirection {
     ASC
     DESC
+  }
+  
+  enum DogRole {
+    SIRE
+    DAM
+    BOTH
   }
   
   enum LogLevel {
@@ -568,6 +580,7 @@ const typeDefs = gql`
     sire: Dog
     dam: Dog
     offspring: [Dog]
+    litter: Litter
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -646,6 +659,12 @@ const typeDefs = gql`
     message: String
   }
   
+  type RegisterLitterPuppiesResponse {
+    success: Boolean!
+    message: String!
+    puppies: [Dog]
+  }
+  
   # Ownership types
   type Ownership {
     id: ID!
@@ -688,6 +707,31 @@ const typeDefs = gql`
     previousOwnership: Ownership!
     newOwnership: Ownership!
     dog: Dog!
+  }
+  
+  # Litter type definition
+  type Litter {
+    id: ID!
+    litterName: String!
+    registrationNumber: String
+    breedingRecordId: String
+    whelpingDate: DateTime!
+    totalPuppies: Int!
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+    sire: Dog!
+    dam: Dog!
+    puppies: [Dog]
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+  
+  # Litter connection for pagination
+  type LitterConnection {
+    totalCount: Int!
+    hasMore: Boolean!
+    items: [Litter!]!
   }
 
   # Inputs
@@ -757,6 +801,54 @@ const typeDefs = gql`
     url: String!
     caption: String
     isPrimary: Boolean
+  }
+  
+  # Litter Input Types
+  input LitterInput {
+    breedingRecordId: ID
+    sireId: ID!
+    damId: ID!
+    litterName: String!
+    registrationNumber: String
+    whelpingDate: DateTime!
+    totalPuppies: Int!
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+    puppyDetails: [PuppyDetailInput]
+  }
+  
+  input UpdateLitterInput {
+    litterName: String
+    registrationNumber: String
+    whelpingDate: DateTime
+    totalPuppies: Int
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+  }
+  
+  input PuppyDetailInput {
+    name: String!
+    gender: String!
+    color: String
+    markings: String
+    microchipNumber: String
+    isCollapsed: Boolean
+  }
+  
+  input RegisterLitterPuppiesInput {
+    litterId: ID!
+    puppies: [PuppyRegistrationInput!]!
+  }
+  
+  input PuppyRegistrationInput {
+    name: String!
+    gender: String!
+    color: String!
+    microchipNumber: String
+    isNeutered: Boolean
+    ownerId: ID
   }
 
   # Event Inputs
@@ -1026,6 +1118,26 @@ const typeDefs = gql`
     
     ownership(id: ID!): Ownership
     
+    # Litter Queries
+    litters(
+      offset: Int = 0
+      limit: Int = 20
+      ownerId: ID
+      breedId: ID
+      fromDate: DateTime
+      toDate: DateTime
+      searchTerm: String
+    ): LitterConnection!
+    
+    litter(id: ID!): Litter
+    
+    dogLitters(
+      dogId: ID!
+      role: DogRole = BOTH
+      offset: Int = 0
+      limit: Int = 20
+    ): LitterConnection!
+    
     # Pedigree Queries
     # Note: dogPedigree query is defined above
     
@@ -1219,6 +1331,13 @@ const typeDefs = gql`
     
     # Temporarily modified to accept a URL instead of file upload
     uploadHealthRecordAttachment(healthRecordId: ID!, fileUrl: String!): HealthRecord!
+    
+    # Litter Mutations
+    createLitter(input: LitterInput!): Litter!
+    
+    updateLitter(id: ID!, input: UpdateLitterInput!): Litter!
+    
+    registerLitterPuppies(input: RegisterLitterPuppiesInput!): RegisterLitterPuppiesResponse!
     
     # System & Audit Log Mutations
     createSystemLog(message: String!, level: LogLevel!, source: String!, details: String, stackTrace: String, ipAddress: String): SystemLog!

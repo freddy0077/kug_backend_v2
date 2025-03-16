@@ -11,7 +11,7 @@ module.exports = {
     logging: console.log,
     define: {
       timestamps: true,
-      underscored: false, // Using camelCase column names
+      underscored: true, // Using snake_case column names
     }
   },
   test: {
@@ -24,7 +24,7 @@ module.exports = {
     logging: false,
     define: {
       timestamps: true,
-      underscored: false, // Using camelCase column names
+      underscored: true, // Using snake_case column names
     }
   },
   production: {
@@ -37,7 +37,7 @@ module.exports = {
     logging: false,
     define: {
       timestamps: true,
-      underscored: false, // Using camelCase column names
+      underscored: true, // Using snake_case column names
     },
     dialectOptions: {
       ssl: {

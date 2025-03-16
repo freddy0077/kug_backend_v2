@@ -18,6 +18,7 @@ import BreedingProgram from './BreedingProgram';
 import BreedingPair from './BreedingPair';
 import BreedingProgramFoundationDog from './BreedingProgramFoundationDog';
 import { Breed } from './Breed';
+import { initLitterModel } from './Litter';
 
 interface DB {
   sequelize: Sequelize;
@@ -41,6 +42,7 @@ interface DB {
   BreedingPair: typeof BreedingPair;
   BreedingProgramFoundationDog: typeof BreedingProgramFoundationDog;
   Breed: typeof Breed;
+  Litter: ReturnType<typeof initLitterModel>;
   [key: string]: any;
 }
 
@@ -82,7 +84,8 @@ const db: DB = {
   BreedingProgram,
   BreedingPair,
   BreedingProgramFoundationDog,
-  Breed
+  Breed,
+  Litter: initLitterModel(sequelize)
 };
 
 // Initialize breeding models
