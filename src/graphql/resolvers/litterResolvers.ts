@@ -233,11 +233,11 @@ const litterMutations = {
       }
 
       // Verify genders (sire must be male, dam must be female)
-      if (sire.gender !== 'MALE') {
+      if (sire.gender !== 'male') {
         throw new UserInputError('Sire must be a male dog');
       }
 
-      if (dam.gender !== 'FEMALE') {
+      if (dam.gender !== 'female') {
         throw new UserInputError('Dam must be a female dog');
       }
 
