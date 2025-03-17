@@ -248,8 +248,8 @@ const litterMutations = {
         sireId,
         damId,
         litterName,
-        registrationNumber: input.registrationNumber,
-        breedingRecordId: input.breedingRecordId,
+        registrationNumber: input.registrationNumber && input.registrationNumber.trim() !== '' ? input.registrationNumber : undefined,
+        breedingRecordId: input.breedingRecordId && input.breedingRecordId.trim() !== '' ? input.breedingRecordId : undefined, // Convert empty string to undefined
         whelpingDate,
         totalPuppies,
         malePuppies: input.malePuppies || 0,
