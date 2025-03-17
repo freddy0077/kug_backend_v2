@@ -385,16 +385,68 @@ const litterMutations = {
 // Litter Field Resolvers
 const Litter = {
   sire: async (parent: LitterAttributes) => {
+    if (!parent.sireId) {
+      console.warn(`Litter ${parent.id} has no sireId`);
+      // Return placeholder dog with minimal required fields
+      return {
+        id: 'missing-dog',
+        name: '[Deleted Dog]',
+        gender: 'male',
+        breedId: null,
+        breed: '[Unknown]',
+        dateOfBirth: new Date(),
+        registrationNumber: '[Deleted]',
+        // Include any other required fields from your Dog model
+      };
+    }
+    
     const sire = await db.Dog.findByPk(parent.sireId);
     if (!sire) {
-      throw new Error(`Sire dog with ID ${parent.sireId} not found. This may be due to the dog being deleted after the litter was created.`);
+      console.warn(`Sire dog with ID ${parent.sireId} not found for litter ${parent.id}`);
+      // Return placeholder for deleted dog
+      return {
+        id: parent.sireId,
+        name: '[Deleted Dog]',
+        gender: 'male',
+        breedId: null,
+        breed: '[Unknown]',
+        dateOfBirth: new Date(),
+        registrationNumber: '[Deleted]',
+        // Include any other required fields from your Dog model
+      };
     }
     return sire;
   },
   dam: async (parent: LitterAttributes) => {
+    if (!parent.damId) {
+      console.warn(`Litter ${parent.id} has no damId`);
+      // Return placeholder dog with minimal required fields
+      return {
+        id: 'missing-dog',
+        name: '[Deleted Dog]',
+        gender: 'female',
+        breedId: null,
+        breed: '[Unknown]',
+        dateOfBirth: new Date(),
+        registrationNumber: '[Deleted]',
+        // Include any other required fields from your Dog model
+      };
+    }
+    
     const dam = await db.Dog.findByPk(parent.damId);
     if (!dam) {
-      throw new Error(`Dam dog with ID ${parent.damId} not found. This may be due to the dog being deleted after the litter was created.`);
+      console.warn(`Dam dog with ID ${parent.damId} not found for litter ${parent.id}`);
+      // Return placeholder for deleted dog
+      return {
+        id: parent.damId,
+        name: '[Deleted Dog]',
+        gender: 'female',
+        breedId: null,
+        breed: '[Unknown]',
+        dateOfBirth: new Date(),
+        registrationNumber: '[Deleted]',
+        // Include any other required fields from your Dog model
+      };
     }
     return dam;
   },
