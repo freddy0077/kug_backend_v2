@@ -385,10 +385,18 @@ const litterMutations = {
 // Litter Field Resolvers
 const Litter = {
   sire: async (parent: LitterAttributes) => {
-    return db.Dog.findByPk(parent.sireId);
+    const sire = await db.Dog.findByPk(parent.sireId);
+    if (!sire) {
+      throw new Error(`Sire dog with ID ${parent.sireId} not found. This may be due to the dog being deleted after the litter was created.`);
+    }
+    return sire;
   },
   dam: async (parent: LitterAttributes) => {
-    return db.Dog.findByPk(parent.damId);
+    const dam = await db.Dog.findByPk(parent.damId);
+    if (!dam) {
+      throw new Error(`Dam dog with ID ${parent.damId} not found. This may be due to the dog being deleted after the litter was created.`);
+    }
+    return dam;
   },
   puppies: async (parent: LitterAttributes) => {
     return db.Dog.findAll({
