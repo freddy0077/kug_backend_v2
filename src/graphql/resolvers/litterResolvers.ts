@@ -7,10 +7,11 @@ import { Context } from './types';
 
 // Define gender validation function locally since it doesn't exist in utils yet
 const validateDogGender = (gender: string): string => {
-  const normalizedGender = gender.trim().toUpperCase();
+  // Normalize to lowercase to match database convention
+  const normalizedGender = gender.trim().toLowerCase();
   
-  if (normalizedGender !== 'MALE' && normalizedGender !== 'FEMALE') {
-    throw new Error(`Invalid gender: ${gender}. Must be either 'MALE' or 'FEMALE'`);
+  if (normalizedGender !== 'male' && normalizedGender !== 'female') {
+    throw new Error(`Invalid gender: ${gender}. Must be either 'male' or 'female'`);
   }
   
   return normalizedGender;
