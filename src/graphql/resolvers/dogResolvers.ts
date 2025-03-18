@@ -9,7 +9,8 @@ enum DogSortField {
   NAME = 'NAME',
   BREED = 'BREED',
   DATE_OF_BIRTH = 'DATE_OF_BIRTH',
-  REGISTRATION_NUMBER = 'REGISTRATION_NUMBER'
+  REGISTRATION_NUMBER = 'REGISTRATION_NUMBER',
+  CREATED_AT = 'CREATED_AT'
 }
 
 enum SortDirection {
@@ -193,6 +194,9 @@ const dogResolvers = {
           break;
         case DogSortField.REGISTRATION_NUMBER:
           order = [['registrationNumber', sortDirection]];
+          break;
+        case DogSortField.CREATED_AT:
+          order = [['createdAt', sortDirection]];
           break;
         default:
           order = [['name', sortDirection]];
