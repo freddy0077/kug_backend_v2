@@ -49,16 +49,16 @@ interface CreatePedigreeInput {
   coefficient?: number;
 }
 
-// Utility function to convert a string ID to a number if needed
-const toNumericId = (id: string | number): number => {
-  if (typeof id === 'string') {
-    const numericId = parseInt(id, 10);
-    if (isNaN(numericId)) {
-      throw new UserInputError('Invalid ID format: must be a valid numeric string or number');
-    }
-    return numericId;
-  }
-  return id;
+// Utility function to standardize ID format - supports both numeric IDs and UUID format
+const standardizeId = (id: string | number): string => {
+  // Always convert to string for consistent comparison
+  return String(id);
+};
+
+// Check if an ID is in UUID format
+const isUuidFormat = (id: string | number): boolean => {
+  const idStr = String(id);
+  return /-/.test(idStr) || /^[0-9a-f]{8,}$/i.test(idStr);
 };
 
 const pedigreeResolvers = {
@@ -214,8 +214,8 @@ const pedigreeResolvers = {
 
       // Helper function to get all ancestors up to a certain generation
       // Returns a map of dog IDs to their info and path details
-      const getAllAncestors = async (dogId: number | string, gen: number, path: string = ''): Promise<Map<number, { dog: any, paths: string[] }>> => {
-        const result = new Map<number, { dog: any, paths: string[] }>();
+      const getAllAncestors = async (dogId: number | string, gen: number, path: string = ''): Promise<Map<string, { dog: any, paths: string[] }>> => {
+        const result = new Map<string, { dog: any, paths: string[] }>();
         
         if (gen <= 0 || !dogId) return result;
         
@@ -224,23 +224,23 @@ const pedigreeResolvers = {
         
         const currentPath = path ? `${path} > ${dog.name}` : dog.name;
         
-        // Add this dog to the result
-        const dogNumericId = toNumericId(dog.id);
-        if (result.has(dogNumericId)) {
-          result.get(dogNumericId)?.paths.push(currentPath);
+        // Add this dog to the result - using string ID for consistency
+        const dogStandardId = standardizeId(dog.id);
+        if (result.has(dogStandardId)) {
+          result.get(dogStandardId)?.paths.push(currentPath);
         } else {
-          result.set(dogNumericId, { dog, paths: [currentPath] });
+          result.set(dogStandardId, { dog, paths: [currentPath] });
         }
         
         // Recursively get ancestors
         if (dog.sireId) {
           const sireAncestors = await getAllAncestors(dog.sireId, gen - 1, currentPath);
           sireAncestors.forEach((value, key) => {
-            const keyNumericId = toNumericId(key);
-            if (result.has(keyNumericId)) {
-              result.get(keyNumericId)?.paths.push(...value.paths);
+            const keyStandardId = standardizeId(key);
+            if (result.has(keyStandardId)) {
+              result.get(keyStandardId)?.paths.push(...value.paths);
             } else {
-              result.set(keyNumericId, value);
+              result.set(keyStandardId, value);
             }
           });
         }
@@ -248,11 +248,11 @@ const pedigreeResolvers = {
         if (dog.damId) {
           const damAncestors = await getAllAncestors(dog.damId, gen - 1, currentPath);
           damAncestors.forEach((value, key) => {
-            const keyNumericId = toNumericId(key);
-            if (result.has(keyNumericId)) {
-              result.get(keyNumericId)?.paths.push(...value.paths);
+            const keyStandardId = standardizeId(key);
+            if (result.has(keyStandardId)) {
+              result.get(keyStandardId)?.paths.push(...value.paths);
             } else {
-              result.set(keyNumericId, value);
+              result.set(keyStandardId, value);
             }
           });
         }
@@ -279,9 +279,12 @@ const pedigreeResolvers = {
       let inbreedingCoefficient = 0;
       
       sireAncestors.forEach((sireAncestor, id) => {
-        const idNumeric = toNumericId(id);
-        if (damAncestors.has(idNumeric)) {
-          const damAncestor = damAncestors.get(idNumeric)!;
+        // Convert ID to consistent format for comparison
+        const idStandardized = standardizeId(id);
+        
+        // Check if this ancestor exists in dam's ancestors using string comparison
+        if (damAncestors.has(idStandardized)) {
+          const damAncestor = damAncestors.get(idStandardized)!;
           const dog = sireAncestor.dog;
           
           // Convert to PedigreeNode format
