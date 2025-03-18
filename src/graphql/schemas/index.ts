@@ -33,6 +33,7 @@ const typeDefs = gql`
     BREED
     DATE_OF_BIRTH
     REGISTRATION_NUMBER
+    CREATED_AT
   }
   
   enum CompetitionSortField {
