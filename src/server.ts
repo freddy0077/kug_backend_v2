@@ -140,11 +140,11 @@ const dogProtectionConfig = {
   windowMs: 60 * 60 * 1000,
   // Allow more access for admin users
   roleMultipliers: {
-    ADMIN: 5.0,    // Admins get 5x the limits
-    OWNER: 2.0,    // Owners get 2x the limits
-    HANDLER: 1.5,  // Handlers get 1.5x the limits
-    CLUB: 2.0,     // Clubs get 2x the limits
-    VIEWER: 1.0    // Standard limit
+    ADMIN: 10.0,    // Admins get 10x the limits
+    OWNER: 5.0,    // Owners get 2x the limits
+    HANDLER: 5.5,  // Handlers get 1.5x the limits
+    CLUB: 5.0,     // Clubs get 2x the limits
+    VIEWER: 5.0    // Standard limit
   }
 };
 
