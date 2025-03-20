@@ -32,7 +32,7 @@ module.exports = {
     `);
     
     await queryInterface.sequelize.query(`
-      UPDATE dogs 
+      UPDATE Dogs 
       SET approval_status = 'approved' 
       WHERE approval_status = 'APPROVED'
     `);
