@@ -272,6 +272,7 @@ const litterMutations = {
           litterId: newLitter.id,
           sireId,
           damId,
+          approvalStatus: 'pending', // Add default approval status
         }));
 
         await db.Dog.bulkCreate(puppies);
@@ -349,6 +350,7 @@ const litterMutations = {
         litterId: litter.id,
         sireId: litter.sireId,
         damId: litter.damId,
+        approvalStatus: 'pending', // Add default approval status
       }));
 
       const createdPuppies = await db.Dog.bulkCreate(puppyRecords);
