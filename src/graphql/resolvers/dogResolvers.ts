@@ -118,6 +118,7 @@ const dogResolvers = {
       breedId,
       gender, 
       ownerId, 
+      approvalStatus,
       sortBy = DogSortField.NAME,
       sortDirection = SortDirection.Asc 
     }: {
@@ -128,9 +129,10 @@ const dogResolvers = {
       breedId?: string;  // Changed from number to string for UUID
       gender?: string;
       ownerId?: string;  // Changed from number to string for UUID
+      approvalStatus?: string; // 'pending', 'approved', 'declined'
       sortBy?: DogSortField;
       sortDirection?: SortDirection;
-    }) => {
+    }, context: any) => {
       // Build where clause based on filters
       const whereClause: any = {};
       
@@ -153,6 +155,28 @@ const dogResolvers = {
       
       if (gender) {
         whereClause.gender = gender.toLowerCase();
+      }
+      
+      // Handle approval status filtering
+      let user = null;
+      try {
+        user = await checkAuth(context);
+      } catch {
+        // User is not authenticated, only show approved dogs
+        whereClause.approval_status = 'approved';
+      }
+      
+      // If user is not an admin, they can only see approved dogs
+      if (user && user.role !== 'ADMIN') {
+        whereClause.approval_status = 'approved';
+      } else if (user && user.role === 'ADMIN') {
+        // Admin can filter by approval status
+        if (approvalStatus) {
+          whereClause.approval_status = approvalStatus.toLowerCase();
+        }
+      } else {
+        // Non-authenticated users can only see approved dogs
+        whereClause.approval_status = 'approved';
       }
       
       let ownerInclude = undefined;
@@ -220,12 +244,32 @@ const dogResolvers = {
     },
     
     // Get a single dog by ID
-    dog: async (_: any, { id }: { id: string }) => {
-      const dog = await db.Dog.findByPk(id);
-      if (!dog) {
-        throw new Error('DOG_NOT_FOUND');
+    dog: async (_: any, { id }: { id: string }, context: any) => {
+      try {
+        const dog = await db.Dog.findByPk(id);
+        if (!dog) {
+          throw new UserInputError('DOG_NOT_FOUND');
+        }
+        
+        // If the dog's approval status is 'declined' and the user is not an admin, don't return it
+        if (dog.approvalStatus === 'declined') {
+          let user = null;
+          try {
+            user = await checkAuth(context);
+          } catch {
+            // User is not authenticated
+          }
+          
+          if (!user || user.role !== 'ADMIN') {
+            throw new ForbiddenError('This dog record is not available');
+          }
+        }
+        
+        return dog;
+      } catch (error) {
+        console.error(`Error fetching dog with ID ${id}:`, error);
+        throw error;
       }
-      return dog;
     },
     
     // Get a dog's pedigree with specified generations
@@ -283,11 +327,12 @@ const dogResolvers = {
         // Generate UUID for the dog
         const dogId = uuidv4();
         
-        // Create the dog with the generated UUID and registration number
+        // Create the dog with the generated UUID, registration number, and pending approval status
         const newDog = await db.Dog.create({
           ...input as any,
           id: dogId,
-          registrationNumber: registrationNumber
+          registrationNumber: registrationNumber,
+          approvalStatus: 'pending' // Set initial status to pending
         });
 
         // Add ownership association if ownerId is provided
@@ -482,6 +527,136 @@ const dogResolvers = {
           message: error.message || 'Error deleting dog'
         };
       }
+    },
+    
+    // Approve a dog
+    approveDog: async (_: any, { id, notes }: { id: string, notes?: string }, context: any) => {
+      // Get authenticated user for authorization check
+      const user = await checkAuth(context);
+      
+      // Check if user has admin role
+      if (user.role !== 'ADMIN') {
+        throw new ForbiddenError('Only administrators can approve dogs');
+      }
+      
+      try {
+        // Find the dog to approve
+        const dog = await db.Dog.findByPk(id);
+        if (!dog) {
+          throw new UserInputError('DOG_NOT_FOUND');
+        }
+        
+        // Check if the dog is already approved
+        if (dog.approvalStatus === 'approved') {
+          throw new UserInputError('Dog is already approved');
+        }
+        
+        // Store previous state for audit logging
+        const originalDog = JSON.stringify(dog);
+        
+        // Update the dog with approval information
+        await dog.update({
+          approvalStatus: 'approved',
+          approvedBy: user.id.toString(), // Convert to string to match the model's type
+          approvalDate: new Date(),
+          approvalNotes: notes || null
+        });
+        
+        // Log the approval in the audit trail
+        await db.AuditLog.create({
+          timestamp: new Date(),
+          action: AuditAction.APPROVE,
+          entityType: 'Dog',
+          entityId: id,
+          userId: user.id,
+          previousState: originalDog,
+          newState: JSON.stringify(dog)
+        });
+        
+        // Log to system logs
+        await db.SystemLog.create({
+          timestamp: new Date(),
+          level: LogLevel.INFO,
+          message: 'Dog approved',
+          source: 'DogResolver',
+          details: JSON.stringify({
+            dogId: dog.id,
+            name: dog.name,
+            userId: user.id
+          }),
+          userId: user.id
+        });
+        
+        return dog;
+      } catch (error) {
+        console.error('Error approving dog:', error);
+        throw error;
+      }
+    },
+    
+    // Decline a dog
+    declineDog: async (_: any, { id, notes }: { id: string, notes?: string }, context: any) => {
+      // Get authenticated user for authorization check
+      const user = await checkAuth(context);
+      
+      // Check if user has admin role
+      if (user.role !== 'ADMIN') {
+        throw new ForbiddenError('Only administrators can decline dogs');
+      }
+      
+      try {
+        // Find the dog to decline
+        const dog = await db.Dog.findByPk(id);
+        if (!dog) {
+          throw new UserInputError('DOG_NOT_FOUND');
+        }
+        
+        // Check if the dog is already declined
+        if (dog.approvalStatus === 'declined') {
+          throw new UserInputError('Dog is already declined');
+        }
+        
+        // Store previous state for audit logging
+        const originalDog = JSON.stringify(dog);
+        
+        // Update the dog with decline information
+        await dog.update({
+          approvalStatus: 'declined',
+          approvedBy: user.id.toString(), // Convert to string to match the model's type
+          approvalDate: new Date(),
+          approvalNotes: notes || null
+        });
+        
+        // Log the decline in the audit trail
+        await db.AuditLog.create({
+          timestamp: new Date(),
+          action: AuditAction.REJECT,
+          entityType: 'Dog',
+          entityId: id,
+          userId: user.id,
+          previousState: originalDog,
+          newState: JSON.stringify(dog)
+        });
+        
+        // Log to system logs
+        await db.SystemLog.create({
+          timestamp: new Date(),
+          level: LogLevel.INFO,
+          message: 'Dog declined',
+          source: 'DogResolver',
+          details: JSON.stringify({
+            dogId: dog.id,
+            name: dog.name,
+            userId: user.id
+          }),
+          userId: user.id
+        });
+        
+        return dog;
+      } catch (error) {
+        console.error('Error declining dog:', error);
+        throw error;
+      }
     }
   },
   
@@ -509,6 +684,17 @@ const dogResolvers = {
     dam: async (parent: any) => {
       if (!parent.damId) return null;
       return await db.Dog.findByPk(parent.damId);
+    },
+    
+    // Resolve the approvedBy field
+    approvedBy: async (parent: any) => {
+      if (!parent.approvedBy) return null;
+      try {
+        return await db.User.findByPk(parent.approvedBy);
+      } catch (error) {
+        console.error(`Error fetching approver for dog ${parent.id}:`, error);
+        return null;
+      }
     },
     
     // Resolve offspring

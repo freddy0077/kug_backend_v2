@@ -54,6 +54,12 @@ const typeDefs = gql`
     DESC
   }
   
+  enum ApprovalStatus {
+    PENDING
+    APPROVED
+    DECLINED
+  }
+  
   enum DogRole {
     SIRE
     DAM
@@ -582,6 +588,10 @@ const typeDefs = gql`
     dam: Dog
     offspring: [Dog]
     litter: Litter
+    approvalStatus: ApprovalStatus!
+    approvedBy: User
+    approvalDate: DateTime
+    approvalNotes: String
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -1087,6 +1097,7 @@ const typeDefs = gql`
       breedId: ID
       gender: String
       ownerId: ID
+      approvalStatus: ApprovalStatus
       sortBy: DogSortField = NAME
       sortDirection: SortDirection = ASC
     ): PaginatedDogs!
@@ -1315,6 +1326,7 @@ const typeDefs = gql`
     linkLitterToBreedingPair(breedingPairId: ID!, breedingRecordId: ID!): BreedingPair!
     
     # Dog Mutations
+    # Creates a dog with 'pending' approval status by default
     createDog(input: CreateDogInput!): Dog!
 
     updateDog(id: ID!, input: UpdateDogInput!): Dog!
@@ -1322,6 +1334,10 @@ const typeDefs = gql`
     addDogImage(dogId: ID!, input: DogImageInput!): DogImage!
 
     deleteDog(id: ID!): DeletionResult!
+    
+    approveDog(id: ID!, notes: String): Dog!
+    
+    declineDog(id: ID!, notes: String): Dog!
 
     # Health Record Mutations
     createHealthRecord(input: CreateHealthRecordInput!): HealthRecord!

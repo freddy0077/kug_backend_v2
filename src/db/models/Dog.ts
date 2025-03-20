@@ -23,6 +23,10 @@ interface DogAttributes {
   sireId: string | null;  // Changed from number to string for UUID
   damId: string | null;   // Changed from number to string for UUID
   litterId: string | null; // Reference to the litter this dog belongs to as a puppy
+  approvalStatus: string; // 'pending', 'approved', 'declined'
+  approvedBy: string | null; // Reference to the user who approved/declined
+  approvalDate: Date | null; // When the approval/decline occurred
+  approvalNotes: string | null; // Optional notes explaining the decision
   createdAt: Date;
   updatedAt: Date;
 }
@@ -51,6 +55,10 @@ class Dog extends Model<DogAttributes, DogCreationAttributes> implements DogAttr
   public sireId!: string | null;  // Changed from number to string for UUID
   public damId!: string | null;   // Changed from number to string for UUID
   public litterId!: string | null; // Reference to the litter this dog belongs to as a puppy
+  public approvalStatus!: string; // 'pending', 'approved', 'declined'
+  public approvedBy!: string | null; // Reference to the user who approved/declined
+  public approvalDate!: Date | null; // When the approval/decline occurred
+  public approvalNotes!: string | null; // Optional notes explaining the decision
   
   // Timestamps
   public readonly createdAt!: Date;
@@ -233,6 +241,34 @@ export const initDogModel = (sequelize: Sequelize): typeof Dog => {
       type: DataTypes.DATE,
       allowNull: false,
       field: 'updated_at'
+    },
+    approvalStatus: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: 'pending',
+      validate: {
+        isIn: [['pending', 'approved', 'declined']],
+      },
+      field: 'approval_status'
+    },
+    approvedBy: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'Users',
+        key: 'id',
+      },
+      field: 'approved_by'
+    },
+    approvalDate: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      field: 'approval_date'
+    },
+    approvalNotes: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: 'approval_notes'
     }
   }, {
     sequelize,

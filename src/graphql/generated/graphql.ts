@@ -18,6 +18,12 @@ export type Scalars = {
   Upload: { input: File; output: File; }
 };
 
+export enum ApprovalStatus {
+  Approved = 'APPROVED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING'
+}
+
 export enum AuditAction {
   Approve = 'APPROVE',
   Create = 'CREATE',
@@ -337,7 +343,6 @@ export type CreateDogInput = {
   microchipNumber?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
   ownerId: Scalars['ID']['input'];
-  registrationNumber: Scalars['String']['input'];
   sireId?: InputMaybe<Scalars['ID']['input']>;
   titles?: InputMaybe<Array<InputMaybe<Scalars['String']['input']>>>;
   weight?: InputMaybe<Scalars['Float']['input']>;
@@ -412,6 +417,10 @@ export type DeletionResult = {
 
 export type Dog = {
   __typename?: 'Dog';
+  approvalDate?: Maybe<Scalars['DateTime']['output']>;
+  approvalNotes?: Maybe<Scalars['String']['output']>;
+  approvalStatus: ApprovalStatus;
+  approvedBy?: Maybe<User>;
   biography?: Maybe<Scalars['String']['output']>;
   breed: Scalars['String']['output'];
   breedObj?: Maybe<Breed>;
@@ -428,6 +437,7 @@ export type Dog = {
   id: Scalars['ID']['output'];
   images?: Maybe<Array<Maybe<DogImage>>>;
   isNeutered?: Maybe<Scalars['Boolean']['output']>;
+  litter?: Maybe<Litter>;
   mainImageUrl?: Maybe<Scalars['String']['output']>;
   microchipNumber?: Maybe<Scalars['String']['output']>;
   name: Scalars['String']['output'];
@@ -456,8 +466,15 @@ export type DogImageInput = {
   url: Scalars['String']['input'];
 };
 
+export enum DogRole {
+  Both = 'BOTH',
+  Dam = 'DAM',
+  Sire = 'SIRE'
+}
+
 export enum DogSortField {
   Breed = 'BREED',
+  CreatedAt = 'CREATED_AT',
   DateOfBirth = 'DATE_OF_BIRTH',
   Name = 'NAME',
   RegistrationNumber = 'REGISTRATION_NUMBER'
@@ -554,6 +571,45 @@ export type LinebreakingAnalysis = {
   recommendations: Array<Scalars['String']['output']>;
 };
 
+export type Litter = {
+  __typename?: 'Litter';
+  breedingRecordId?: Maybe<Scalars['String']['output']>;
+  createdAt: Scalars['DateTime']['output'];
+  dam: Dog;
+  femalePuppies?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
+  litterName: Scalars['String']['output'];
+  malePuppies?: Maybe<Scalars['Int']['output']>;
+  notes?: Maybe<Scalars['String']['output']>;
+  puppies?: Maybe<Array<Maybe<Dog>>>;
+  registrationNumber?: Maybe<Scalars['String']['output']>;
+  sire: Dog;
+  totalPuppies: Scalars['Int']['output'];
+  updatedAt: Scalars['DateTime']['output'];
+  whelpingDate: Scalars['DateTime']['output'];
+};
+
+export type LitterConnection = {
+  __typename?: 'LitterConnection';
+  hasMore: Scalars['Boolean']['output'];
+  items: Array<Litter>;
+  totalCount: Scalars['Int']['output'];
+};
+
+export type LitterInput = {
+  breedingRecordId?: InputMaybe<Scalars['ID']['input']>;
+  damId: Scalars['ID']['input'];
+  femalePuppies?: InputMaybe<Scalars['Int']['input']>;
+  litterName: Scalars['String']['input'];
+  malePuppies?: InputMaybe<Scalars['Int']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  puppyDetails?: InputMaybe<Array<InputMaybe<PuppyDetailInput>>>;
+  registrationNumber?: InputMaybe<Scalars['String']['input']>;
+  sireId: Scalars['ID']['input'];
+  totalPuppies: Scalars['Int']['input'];
+  whelpingDate: Scalars['DateTime']['input'];
+};
+
 export enum LogLevel {
   Critical = 'CRITICAL',
   Debug = 'DEBUG',
@@ -566,6 +622,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   addBreedingPair: BreedingPair;
   addDogImage: DogImage;
+  approveDog: Dog;
   changePassword: GenericResult;
   clearAuditLogs: DeletionResult;
   clearSystemLogs: DeletionResult;
@@ -578,10 +635,12 @@ export type Mutation = {
   createDog: Dog;
   createEvent: Event;
   createHealthRecord: HealthRecord;
+  createLitter: Litter;
   createOwnership: Ownership;
   createPedigree: PedigreeCreationResult;
   createSystemLog: SystemLog;
   deactivateUser: User;
+  declineDog: Dog;
   deleteBreed: DeletionResult;
   deleteBreedingProgram: DeleteResponse;
   deleteCompetitionResult: DeleteResponse;
@@ -594,6 +653,7 @@ export type Mutation = {
   publishEvent: Event;
   register: AuthPayload;
   registerDogForEvent: EventRegistration;
+  registerLitterPuppies: RegisterLitterPuppiesResponse;
   transferOwnership: OwnershipTransferResult;
   updateBreed: Breed;
   updateBreedingPairStatus: BreedingPair;
@@ -603,6 +663,7 @@ export type Mutation = {
   updateDog: Dog;
   updateEvent: Event;
   updateHealthRecord: HealthRecord;
+  updateLitter: Litter;
   updateOwnership: Ownership;
   updateUser: User;
   updateUserRole: User;
@@ -618,6 +679,12 @@ export type MutationAddBreedingPairArgs = {
 export type MutationAddDogImageArgs = {
   dogId: Scalars['ID']['input'];
   input: DogImageInput;
+};
+
+
+export type MutationApproveDogArgs = {
+  id: Scalars['ID']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -690,6 +757,11 @@ export type MutationCreateHealthRecordArgs = {
 };
 
 
+export type MutationCreateLitterArgs = {
+  input: LitterInput;
+};
+
+
 export type MutationCreateOwnershipArgs = {
   input: CreateOwnershipInput;
 };
@@ -712,6 +784,12 @@ export type MutationCreateSystemLogArgs = {
 
 export type MutationDeactivateUserArgs = {
   userId: Scalars['ID']['input'];
+};
+
+
+export type MutationDeclineDogArgs = {
+  id: Scalars['ID']['input'];
+  notes?: InputMaybe<Scalars['String']['input']>;
 };
 
 
@@ -780,6 +858,11 @@ export type MutationRegisterDogForEventArgs = {
 };
 
 
+export type MutationRegisterLitterPuppiesArgs = {
+  input: RegisterLitterPuppiesInput;
+};
+
+
 export type MutationTransferOwnershipArgs = {
   input: TransferOwnershipInput;
 };
@@ -831,6 +914,12 @@ export type MutationUpdateEventArgs = {
 export type MutationUpdateHealthRecordArgs = {
   id: Scalars['ID']['input'];
   input: UpdateHealthRecordInput;
+};
+
+
+export type MutationUpdateLitterArgs = {
+  id: Scalars['ID']['input'];
+  input: UpdateLitterInput;
 };
 
 
@@ -1004,6 +1093,7 @@ export type PedigreeCreationResult = {
 export type PedigreeNode = {
   __typename?: 'PedigreeNode';
   breed: Scalars['String']['output'];
+  breedObj?: Maybe<Breed>;
   coefficient?: Maybe<Scalars['Float']['output']>;
   color?: Maybe<Scalars['String']['output']>;
   dam?: Maybe<PedigreeNode>;
@@ -1021,6 +1111,24 @@ export type PointsByCategory = {
   __typename?: 'PointsByCategory';
   category: Scalars['String']['output'];
   points: Scalars['Float']['output'];
+};
+
+export type PuppyDetailInput = {
+  color?: InputMaybe<Scalars['String']['input']>;
+  gender: Scalars['String']['input'];
+  isCollapsed?: InputMaybe<Scalars['Boolean']['input']>;
+  markings?: InputMaybe<Scalars['String']['input']>;
+  microchipNumber?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+};
+
+export type PuppyRegistrationInput = {
+  color: Scalars['String']['input'];
+  gender: Scalars['String']['input'];
+  isNeutered?: InputMaybe<Scalars['Boolean']['input']>;
+  microchipNumber?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
 };
 
 export type Query = {
@@ -1042,6 +1150,7 @@ export type Query = {
   dog?: Maybe<Dog>;
   dogCompetitionStats: CompetitionStats;
   dogHealthRecords: PaginatedHealthRecords;
+  dogLitters: LitterConnection;
   dogOwnerships: OwnershipHistory;
   dogPedigree?: Maybe<PedigreeNode>;
   dogs: PaginatedDogs;
@@ -1050,6 +1159,8 @@ export type Query = {
   healthRecord?: Maybe<HealthRecord>;
   healthSummary: HealthSummary;
   linebreedingAnalysis?: Maybe<LinebreakingAnalysis>;
+  litter?: Maybe<Litter>;
+  litters: LitterConnection;
   me?: Maybe<User>;
   ownerDogs: PaginatedOwnerships;
   ownership?: Maybe<Ownership>;
@@ -1174,6 +1285,14 @@ export type QueryDogHealthRecordsArgs = {
 };
 
 
+export type QueryDogLittersArgs = {
+  dogId: Scalars['ID']['input'];
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  role?: InputMaybe<DogRole>;
+};
+
+
 export type QueryDogOwnershipsArgs = {
   dogId: Scalars['ID']['input'];
 };
@@ -1186,6 +1305,7 @@ export type QueryDogPedigreeArgs = {
 
 
 export type QueryDogsArgs = {
+  approvalStatus?: InputMaybe<ApprovalStatus>;
   breed?: InputMaybe<Scalars['String']['input']>;
   breedId?: InputMaybe<Scalars['ID']['input']>;
   gender?: InputMaybe<Scalars['String']['input']>;
@@ -1230,6 +1350,22 @@ export type QueryLinebreedingAnalysisArgs = {
   damId: Scalars['ID']['input'];
   generations?: InputMaybe<Scalars['Int']['input']>;
   sireId: Scalars['ID']['input'];
+};
+
+
+export type QueryLitterArgs = {
+  id: Scalars['ID']['input'];
+};
+
+
+export type QueryLittersArgs = {
+  breedId?: InputMaybe<Scalars['ID']['input']>;
+  fromDate?: InputMaybe<Scalars['DateTime']['input']>;
+  limit?: InputMaybe<Scalars['Int']['input']>;
+  offset?: InputMaybe<Scalars['Int']['input']>;
+  ownerId?: InputMaybe<Scalars['ID']['input']>;
+  searchTerm?: InputMaybe<Scalars['String']['input']>;
+  toDate?: InputMaybe<Scalars['DateTime']['input']>;
 };
 
 
@@ -1299,6 +1435,18 @@ export type RegisterInput = {
   ownerInfo?: InputMaybe<OwnerInfoInput>;
   password: Scalars['String']['input'];
   role: UserRole;
+};
+
+export type RegisterLitterPuppiesInput = {
+  litterId: Scalars['ID']['input'];
+  puppies: Array<PuppyRegistrationInput>;
+};
+
+export type RegisterLitterPuppiesResponse = {
+  __typename?: 'RegisterLitterPuppiesResponse';
+  message: Scalars['String']['output'];
+  puppies?: Maybe<Array<Maybe<Dog>>>;
+  success: Scalars['Boolean']['output'];
 };
 
 export enum SortDirection {
@@ -1424,6 +1572,16 @@ export type UpdateHealthRecordInput = {
   veterinarian?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdateLitterInput = {
+  femalePuppies?: InputMaybe<Scalars['Int']['input']>;
+  litterName?: InputMaybe<Scalars['String']['input']>;
+  malePuppies?: InputMaybe<Scalars['Int']['input']>;
+  notes?: InputMaybe<Scalars['String']['input']>;
+  registrationNumber?: InputMaybe<Scalars['String']['input']>;
+  totalPuppies?: InputMaybe<Scalars['Int']['input']>;
+  whelpingDate?: InputMaybe<Scalars['DateTime']['input']>;
+};
+
 export type UpdateOwnershipInput = {
   endDate?: InputMaybe<Scalars['DateTime']['input']>;
   is_current?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1542,6 +1700,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = {
+  ApprovalStatus: ApprovalStatus;
   AuditAction: AuditAction;
   AuditLog: ResolverTypeWrapper<AuditLog>;
   AuthPayload: ResolverTypeWrapper<AuthPayload>;
@@ -1580,6 +1739,7 @@ export type ResolversTypes = {
   Dog: ResolverTypeWrapper<Dog>;
   DogImage: ResolverTypeWrapper<DogImage>;
   DogImageInput: DogImageInput;
+  DogRole: DogRole;
   DogSortField: DogSortField;
   Event: ResolverTypeWrapper<Event>;
   EventRegistration: ResolverTypeWrapper<EventRegistration>;
@@ -1592,6 +1752,9 @@ export type ResolversTypes = {
   ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   LinebreakingAnalysis: ResolverTypeWrapper<LinebreakingAnalysis>;
+  Litter: ResolverTypeWrapper<Litter>;
+  LitterConnection: ResolverTypeWrapper<LitterConnection>;
+  LitterInput: LitterInput;
   LogLevel: LogLevel;
   Mutation: ResolverTypeWrapper<{}>;
   Owner: ResolverTypeWrapper<Owner>;
@@ -1614,9 +1777,13 @@ export type ResolversTypes = {
   PedigreeCreationResult: ResolverTypeWrapper<PedigreeCreationResult>;
   PedigreeNode: ResolverTypeWrapper<PedigreeNode>;
   PointsByCategory: ResolverTypeWrapper<PointsByCategory>;
+  PuppyDetailInput: PuppyDetailInput;
+  PuppyRegistrationInput: PuppyRegistrationInput;
   Query: ResolverTypeWrapper<{}>;
   RecordTypeCount: ResolverTypeWrapper<RecordTypeCount>;
   RegisterInput: RegisterInput;
+  RegisterLitterPuppiesInput: RegisterLitterPuppiesInput;
+  RegisterLitterPuppiesResponse: ResolverTypeWrapper<RegisterLitterPuppiesResponse>;
   SortDirection: SortDirection;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   SystemLog: ResolverTypeWrapper<SystemLog>;
@@ -1628,6 +1795,7 @@ export type ResolversTypes = {
   UpdateDogInput: UpdateDogInput;
   UpdateEventInput: UpdateEventInput;
   UpdateHealthRecordInput: UpdateHealthRecordInput;
+  UpdateLitterInput: UpdateLitterInput;
   UpdateOwnershipInput: UpdateOwnershipInput;
   UpdateUserInput: UpdateUserInput;
   Upload: ResolverTypeWrapper<Scalars['Upload']['output']>;
@@ -1679,6 +1847,9 @@ export type ResolversParentTypes = {
   ID: Scalars['ID']['output'];
   Int: Scalars['Int']['output'];
   LinebreakingAnalysis: LinebreakingAnalysis;
+  Litter: Litter;
+  LitterConnection: LitterConnection;
+  LitterInput: LitterInput;
   Mutation: {};
   Owner: Owner;
   OwnerInfoInput: OwnerInfoInput;
@@ -1700,9 +1871,13 @@ export type ResolversParentTypes = {
   PedigreeCreationResult: PedigreeCreationResult;
   PedigreeNode: PedigreeNode;
   PointsByCategory: PointsByCategory;
+  PuppyDetailInput: PuppyDetailInput;
+  PuppyRegistrationInput: PuppyRegistrationInput;
   Query: {};
   RecordTypeCount: RecordTypeCount;
   RegisterInput: RegisterInput;
+  RegisterLitterPuppiesInput: RegisterLitterPuppiesInput;
+  RegisterLitterPuppiesResponse: RegisterLitterPuppiesResponse;
   String: Scalars['String']['output'];
   SystemLog: SystemLog;
   TransferOwnershipInput: TransferOwnershipInput;
@@ -1713,6 +1888,7 @@ export type ResolversParentTypes = {
   UpdateDogInput: UpdateDogInput;
   UpdateEventInput: UpdateEventInput;
   UpdateHealthRecordInput: UpdateHealthRecordInput;
+  UpdateLitterInput: UpdateLitterInput;
   UpdateOwnershipInput: UpdateOwnershipInput;
   UpdateUserInput: UpdateUserInput;
   Upload: Scalars['Upload']['output'];
@@ -1907,6 +2083,10 @@ export type DeletionResultResolvers<ContextType = any, ParentType extends Resolv
 };
 
 export type DogResolvers<ContextType = any, ParentType extends ResolversParentTypes['Dog'] = ResolversParentTypes['Dog']> = {
+  approvalDate?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  approvalNotes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  approvalStatus?: Resolver<ResolversTypes['ApprovalStatus'], ParentType, ContextType>;
+  approvedBy?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   biography?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   breed?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   breedObj?: Resolver<Maybe<ResolversTypes['Breed']>, ParentType, ContextType>;
@@ -1923,6 +2103,7 @@ export type DogResolvers<ContextType = any, ParentType extends ResolversParentTy
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   images?: Resolver<Maybe<Array<Maybe<ResolversTypes['DogImage']>>>, ParentType, ContextType>;
   isNeutered?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  litter?: Resolver<Maybe<ResolversTypes['Litter']>, ParentType, ContextType>;
   mainImageUrl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   microchipNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2018,9 +2199,35 @@ export type LinebreakingAnalysisResolvers<ContextType = any, ParentType extends 
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
+export type LitterResolvers<ContextType = any, ParentType extends ResolversParentTypes['Litter'] = ResolversParentTypes['Litter']> = {
+  breedingRecordId?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  dam?: Resolver<ResolversTypes['Dog'], ParentType, ContextType>;
+  femalePuppies?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  litterName?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  malePuppies?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  notes?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  puppies?: Resolver<Maybe<Array<Maybe<ResolversTypes['Dog']>>>, ParentType, ContextType>;
+  registrationNumber?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  sire?: Resolver<ResolversTypes['Dog'], ParentType, ContextType>;
+  totalPuppies?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  updatedAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  whelpingDate?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type LitterConnectionResolvers<ContextType = any, ParentType extends ResolversParentTypes['LitterConnection'] = ResolversParentTypes['LitterConnection']> = {
+  hasMore?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  items?: Resolver<Array<ResolversTypes['Litter']>, ParentType, ContextType>;
+  totalCount?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   addBreedingPair?: Resolver<ResolversTypes['BreedingPair'], ParentType, ContextType, RequireFields<MutationAddBreedingPairArgs, 'input'>>;
   addDogImage?: Resolver<ResolversTypes['DogImage'], ParentType, ContextType, RequireFields<MutationAddDogImageArgs, 'dogId' | 'input'>>;
+  approveDog?: Resolver<ResolversTypes['Dog'], ParentType, ContextType, RequireFields<MutationApproveDogArgs, 'id'>>;
   changePassword?: Resolver<ResolversTypes['GenericResult'], ParentType, ContextType, RequireFields<MutationChangePasswordArgs, 'currentPassword' | 'newPassword'>>;
   clearAuditLogs?: Resolver<ResolversTypes['DeletionResult'], ParentType, ContextType, Partial<MutationClearAuditLogsArgs>>;
   clearSystemLogs?: Resolver<ResolversTypes['DeletionResult'], ParentType, ContextType, Partial<MutationClearSystemLogsArgs>>;
@@ -2033,10 +2240,12 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   createDog?: Resolver<ResolversTypes['Dog'], ParentType, ContextType, RequireFields<MutationCreateDogArgs, 'input'>>;
   createEvent?: Resolver<ResolversTypes['Event'], ParentType, ContextType, RequireFields<MutationCreateEventArgs, 'input'>>;
   createHealthRecord?: Resolver<ResolversTypes['HealthRecord'], ParentType, ContextType, RequireFields<MutationCreateHealthRecordArgs, 'input'>>;
+  createLitter?: Resolver<ResolversTypes['Litter'], ParentType, ContextType, RequireFields<MutationCreateLitterArgs, 'input'>>;
   createOwnership?: Resolver<ResolversTypes['Ownership'], ParentType, ContextType, RequireFields<MutationCreateOwnershipArgs, 'input'>>;
   createPedigree?: Resolver<ResolversTypes['PedigreeCreationResult'], ParentType, ContextType, RequireFields<MutationCreatePedigreeArgs, 'input'>>;
   createSystemLog?: Resolver<ResolversTypes['SystemLog'], ParentType, ContextType, RequireFields<MutationCreateSystemLogArgs, 'level' | 'message' | 'source'>>;
   deactivateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationDeactivateUserArgs, 'userId'>>;
+  declineDog?: Resolver<ResolversTypes['Dog'], ParentType, ContextType, RequireFields<MutationDeclineDogArgs, 'id'>>;
   deleteBreed?: Resolver<ResolversTypes['DeletionResult'], ParentType, ContextType, RequireFields<MutationDeleteBreedArgs, 'id'>>;
   deleteBreedingProgram?: Resolver<ResolversTypes['DeleteResponse'], ParentType, ContextType, RequireFields<MutationDeleteBreedingProgramArgs, 'id'>>;
   deleteCompetitionResult?: Resolver<ResolversTypes['DeleteResponse'], ParentType, ContextType, RequireFields<MutationDeleteCompetitionResultArgs, 'id'>>;
@@ -2049,6 +2258,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   publishEvent?: Resolver<ResolversTypes['Event'], ParentType, ContextType, RequireFields<MutationPublishEventArgs, 'id'>>;
   register?: Resolver<ResolversTypes['AuthPayload'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'input'>>;
   registerDogForEvent?: Resolver<ResolversTypes['EventRegistration'], ParentType, ContextType, RequireFields<MutationRegisterDogForEventArgs, 'dogId' | 'eventId'>>;
+  registerLitterPuppies?: Resolver<ResolversTypes['RegisterLitterPuppiesResponse'], ParentType, ContextType, RequireFields<MutationRegisterLitterPuppiesArgs, 'input'>>;
   transferOwnership?: Resolver<ResolversTypes['OwnershipTransferResult'], ParentType, ContextType, RequireFields<MutationTransferOwnershipArgs, 'input'>>;
   updateBreed?: Resolver<ResolversTypes['Breed'], ParentType, ContextType, RequireFields<MutationUpdateBreedArgs, 'id' | 'input'>>;
   updateBreedingPairStatus?: Resolver<ResolversTypes['BreedingPair'], ParentType, ContextType, RequireFields<MutationUpdateBreedingPairStatusArgs, 'id' | 'status'>>;
@@ -2058,6 +2268,7 @@ export type MutationResolvers<ContextType = any, ParentType extends ResolversPar
   updateDog?: Resolver<ResolversTypes['Dog'], ParentType, ContextType, RequireFields<MutationUpdateDogArgs, 'id' | 'input'>>;
   updateEvent?: Resolver<ResolversTypes['Event'], ParentType, ContextType, RequireFields<MutationUpdateEventArgs, 'id' | 'input'>>;
   updateHealthRecord?: Resolver<ResolversTypes['HealthRecord'], ParentType, ContextType, RequireFields<MutationUpdateHealthRecordArgs, 'id' | 'input'>>;
+  updateLitter?: Resolver<ResolversTypes['Litter'], ParentType, ContextType, RequireFields<MutationUpdateLitterArgs, 'id' | 'input'>>;
   updateOwnership?: Resolver<ResolversTypes['Ownership'], ParentType, ContextType, RequireFields<MutationUpdateOwnershipArgs, 'id' | 'input'>>;
   updateUser?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserArgs, 'id' | 'input'>>;
   updateUserRole?: Resolver<ResolversTypes['User'], ParentType, ContextType, RequireFields<MutationUpdateUserRoleArgs, 'role' | 'userId'>>;
@@ -2203,6 +2414,7 @@ export type PedigreeCreationResultResolvers<ContextType = any, ParentType extend
 
 export type PedigreeNodeResolvers<ContextType = any, ParentType extends ResolversParentTypes['PedigreeNode'] = ResolversParentTypes['PedigreeNode']> = {
   breed?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  breedObj?: Resolver<Maybe<ResolversTypes['Breed']>, ParentType, ContextType>;
   coefficient?: Resolver<Maybe<ResolversTypes['Float']>, ParentType, ContextType>;
   color?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   dam?: Resolver<Maybe<ResolversTypes['PedigreeNode']>, ParentType, ContextType>;
@@ -2241,6 +2453,7 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   dog?: Resolver<Maybe<ResolversTypes['Dog']>, ParentType, ContextType, RequireFields<QueryDogArgs, 'id'>>;
   dogCompetitionStats?: Resolver<ResolversTypes['CompetitionStats'], ParentType, ContextType, RequireFields<QueryDogCompetitionStatsArgs, 'dogId'>>;
   dogHealthRecords?: Resolver<ResolversTypes['PaginatedHealthRecords'], ParentType, ContextType, RequireFields<QueryDogHealthRecordsArgs, 'dogId' | 'limit' | 'offset' | 'sortDirection'>>;
+  dogLitters?: Resolver<ResolversTypes['LitterConnection'], ParentType, ContextType, RequireFields<QueryDogLittersArgs, 'dogId' | 'limit' | 'offset' | 'role'>>;
   dogOwnerships?: Resolver<ResolversTypes['OwnershipHistory'], ParentType, ContextType, RequireFields<QueryDogOwnershipsArgs, 'dogId'>>;
   dogPedigree?: Resolver<Maybe<ResolversTypes['PedigreeNode']>, ParentType, ContextType, RequireFields<QueryDogPedigreeArgs, 'dogId' | 'generations'>>;
   dogs?: Resolver<ResolversTypes['PaginatedDogs'], ParentType, ContextType, RequireFields<QueryDogsArgs, 'limit' | 'offset' | 'sortBy' | 'sortDirection'>>;
@@ -2249,6 +2462,8 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
   healthRecord?: Resolver<Maybe<ResolversTypes['HealthRecord']>, ParentType, ContextType, RequireFields<QueryHealthRecordArgs, 'id'>>;
   healthSummary?: Resolver<ResolversTypes['HealthSummary'], ParentType, ContextType, RequireFields<QueryHealthSummaryArgs, 'dogId'>>;
   linebreedingAnalysis?: Resolver<Maybe<ResolversTypes['LinebreakingAnalysis']>, ParentType, ContextType, RequireFields<QueryLinebreedingAnalysisArgs, 'damId' | 'generations' | 'sireId'>>;
+  litter?: Resolver<Maybe<ResolversTypes['Litter']>, ParentType, ContextType, RequireFields<QueryLitterArgs, 'id'>>;
+  litters?: Resolver<ResolversTypes['LitterConnection'], ParentType, ContextType, RequireFields<QueryLittersArgs, 'limit' | 'offset'>>;
   me?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType>;
   ownerDogs?: Resolver<ResolversTypes['PaginatedOwnerships'], ParentType, ContextType, RequireFields<QueryOwnerDogsArgs, 'includeFormer' | 'limit' | 'offset' | 'ownerId'>>;
   ownership?: Resolver<Maybe<ResolversTypes['Ownership']>, ParentType, ContextType, RequireFields<QueryOwnershipArgs, 'id'>>;
@@ -2263,6 +2478,13 @@ export type QueryResolvers<ContextType = any, ParentType extends ResolversParent
 export type RecordTypeCountResolvers<ContextType = any, ParentType extends ResolversParentTypes['RecordTypeCount'] = ResolversParentTypes['RecordTypeCount']> = {
   count?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['HealthRecordType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+};
+
+export type RegisterLitterPuppiesResponseResolvers<ContextType = any, ParentType extends ResolversParentTypes['RegisterLitterPuppiesResponse'] = ResolversParentTypes['RegisterLitterPuppiesResponse']> = {
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  puppies?: Resolver<Maybe<Array<Maybe<ResolversTypes['Dog']>>>, ParentType, ContextType>;
+  success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 };
 
@@ -2333,6 +2555,8 @@ export type Resolvers<ContextType = any> = {
   HealthRecord?: HealthRecordResolvers<ContextType>;
   HealthSummary?: HealthSummaryResolvers<ContextType>;
   LinebreakingAnalysis?: LinebreakingAnalysisResolvers<ContextType>;
+  Litter?: LitterResolvers<ContextType>;
+  LitterConnection?: LitterConnectionResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Owner?: OwnerResolvers<ContextType>;
   Ownership?: OwnershipResolvers<ContextType>;
@@ -2355,6 +2579,7 @@ export type Resolvers<ContextType = any> = {
   PointsByCategory?: PointsByCategoryResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RecordTypeCount?: RecordTypeCountResolvers<ContextType>;
+  RegisterLitterPuppiesResponse?: RegisterLitterPuppiesResponseResolvers<ContextType>;
   SystemLog?: SystemLogResolvers<ContextType>;
   Upload?: GraphQLScalarType;
   User?: UserResolvers<ContextType>;
