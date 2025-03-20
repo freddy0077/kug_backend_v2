@@ -163,20 +163,20 @@ const dogResolvers = {
         user = await checkAuth(context);
       } catch {
         // User is not authenticated, only show approved dogs
-        whereClause.approval_status = 'approved';
+        whereClause.approval_status = 'APPROVED';
       }
       
       // If user is not an admin, they can only see approved dogs
       if (user && user.role !== 'ADMIN') {
-        whereClause.approval_status = 'approved';
+        whereClause.approval_status = 'APPROVED';
       } else if (user && user.role === 'ADMIN') {
         // Admin can filter by approval status
         if (approvalStatus) {
-          whereClause.approval_status = approvalStatus.toLowerCase();
+          whereClause.approval_status = approvalStatus;
         }
       } else {
         // Non-authenticated users can only see approved dogs
-        whereClause.approval_status = 'approved';
+        whereClause.approval_status = 'APPROVED';
       }
       
       let ownerInclude = undefined;
@@ -251,8 +251,8 @@ const dogResolvers = {
           throw new UserInputError('DOG_NOT_FOUND');
         }
         
-        // If the dog's approval status is 'declined' and the user is not an admin, don't return it
-        if (dog.approvalStatus === 'declined') {
+        // If the dog's approval status is 'DECLINED' and the user is not an admin, don't return it
+        if (dog.approvalStatus === 'DECLINED') {
           let user = null;
           try {
             user = await checkAuth(context);
@@ -332,7 +332,7 @@ const dogResolvers = {
           ...input as any,
           id: dogId,
           registrationNumber: registrationNumber,
-          approvalStatus: 'pending' // Set initial status to pending
+          approvalStatus: 'PENDING' // Set initial status to pending
         });
 
         // Add ownership association if ownerId is provided
@@ -547,7 +547,7 @@ const dogResolvers = {
         }
         
         // Check if the dog is already approved
-        if (dog.approvalStatus === 'approved') {
+        if (dog.approvalStatus === 'APPROVED') {
           throw new UserInputError('Dog is already approved');
         }
         
@@ -556,7 +556,7 @@ const dogResolvers = {
         
         // Update the dog with approval information
         await dog.update({
-          approvalStatus: 'approved',
+          approvalStatus: 'APPROVED',
           approvedBy: user.id.toString(), // Convert to string to match the model's type
           approvalDate: new Date(),
           approvalNotes: notes || null
@@ -612,7 +612,7 @@ const dogResolvers = {
         }
         
         // Check if the dog is already declined
-        if (dog.approvalStatus === 'declined') {
+        if (dog.approvalStatus === 'DECLINED') {
           throw new UserInputError('Dog is already declined');
         }
         
@@ -621,7 +621,7 @@ const dogResolvers = {
         
         // Update the dog with decline information
         await dog.update({
-          approvalStatus: 'declined',
+          approvalStatus: 'DECLINED',
           approvedBy: user.id.toString(), // Convert to string to match the model's type
           approvalDate: new Date(),
           approvalNotes: notes || null
