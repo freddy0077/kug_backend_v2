@@ -2,7 +2,7 @@ import { Model, DataTypes, Sequelize, Optional, Association } from 'sequelize';
 import { Breed } from './Breed';
 
 // These attributes define the Dog entity in the database
-interface DogAttributes {
+export interface DogAttributes {
   id: string;  // Changed from number to string for UUID
   name: string;
   breed: string;  // Keep for backward compatibility
@@ -32,7 +32,7 @@ interface DogAttributes {
 }
 
 // These attributes are for creating a new Dog (some can be optional during creation)
-interface DogCreationAttributes extends Optional<DogAttributes, 'id' | 'createdAt' | 'updatedAt' | 'breed_id' | 'breedId'> {}
+export interface DogCreationAttributes extends Optional<DogAttributes, 'id' | 'createdAt' | 'updatedAt' | 'breed_id' | 'breedId'> {}
 
 class Dog extends Model<DogAttributes, DogCreationAttributes> implements DogAttributes {
   public id!: string;  // Changed from number to string for UUID

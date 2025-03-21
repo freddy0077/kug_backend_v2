@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import db from '../../db/models';
 import { Sequelize } from 'sequelize';
 import { Breed } from '../../db/models/Breed';
+import type { DogAttributes } from '../../db/models/Dog';
 
 // Define enums to match GraphQL schema
 enum DogSortField {
