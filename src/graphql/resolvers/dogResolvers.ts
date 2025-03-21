@@ -76,6 +76,11 @@ async function fetchDogPedigreeRecursive(dogId: string, generations: number, cur
   
   const result: any = dog.toJSON();
   
+  // Convert approval status to uppercase if it's lowercase
+  if (result.approvalStatus && typeof result.approvalStatus === 'string') {
+    result.approvalStatus = result.approvalStatus.toUpperCase();
+  }
+  
   if (dog.sireId) {
     result.sire = await fetchDogPedigreeRecursive(dog.sireId, generations, currentGen + 1, isAdmin);
   }
@@ -243,10 +248,23 @@ const dogResolvers = {
         distinct: true
       });
       
+      // Convert any lowercase approval status values to uppercase to match the GraphQL enum
+      const normalizedRows = rows.map(dog => {
+        // Create a new object to avoid modifying the Sequelize model directly
+        const dogJson = dog.toJSON();
+        
+        // Convert approval status to uppercase if it's lowercase
+        if (dogJson.approvalStatus && typeof dogJson.approvalStatus === 'string') {
+          dogJson.approvalStatus = dogJson.approvalStatus.toUpperCase();
+        }
+        
+        return dogJson;
+      });
+      
       return {
         totalCount: count,
         hasMore: offset + rows.length < count,
-        items: rows
+        items: normalizedRows
       };
     },
     
@@ -271,7 +289,15 @@ const dogResolvers = {
           throw new ForbiddenError('This dog record is not available');
         }
         
-        return dog;
+        // Create a new object to avoid modifying the Sequelize model directly
+        const dogJson = dog.toJSON();
+        
+        // Convert approval status to uppercase if it's lowercase
+        if (dogJson.approvalStatus && typeof dogJson.approvalStatus === 'string') {
+          dogJson.approvalStatus = dogJson.approvalStatus.toUpperCase();
+        }
+        
+        return dogJson;
       } catch (error) {
         console.error(`Error fetching dog with ID ${id}:`, error);
         throw error;
