@@ -58,7 +58,7 @@ import { checkAuth } from '../../utils/auth';
 import { UserInputError, ForbiddenError } from 'apollo-server-express';
 
 // Helper function to get a dog's pedigree recursively
-async function fetchDogPedigreeRecursive(dogId: string, generations: number, currentGen = 0): Promise<any> {
+async function fetchDogPedigreeRecursive(dogId: string, generations: number, currentGen = 0, isAdmin = false): Promise<any> {
   if (currentGen >= generations || !dogId) return null;
   
   const dog = await db.Dog.findByPk(dogId, {
@@ -67,14 +67,21 @@ async function fetchDogPedigreeRecursive(dogId: string, generations: number, cur
   
   if (!dog) return null;
   
+  // For ancestors in the pedigree, we still need to check approval status
+  // but this check is only applied for non-root nodes (currentGen > 0)
+  // since root node has already been checked for permission in the resolver
+  if (currentGen > 0 && dog.approvalStatus !== 'APPROVED' && !isAdmin) {
+    return null; // Skip non-approved dogs in pedigree for non-admin users
+  }
+  
   const result: any = dog.toJSON();
   
   if (dog.sireId) {
-    result.sire = await fetchDogPedigreeRecursive(dog.sireId, generations, currentGen + 1);
+    result.sire = await fetchDogPedigreeRecursive(dog.sireId, generations, currentGen + 1, isAdmin);
   }
   
   if (dog.damId) {
-    result.dam = await fetchDogPedigreeRecursive(dog.damId, generations, currentGen + 1);
+    result.dam = await fetchDogPedigreeRecursive(dog.damId, generations, currentGen + 1, isAdmin);
   }
   
   return result;
@@ -251,18 +258,17 @@ const dogResolvers = {
           throw new UserInputError('DOG_NOT_FOUND');
         }
         
-        // If the dog's approval status is 'DECLINED' and the user is not an admin, don't return it
-        if (dog.approvalStatus === 'DECLINED') {
-          let user = null;
-          try {
-            user = await checkAuth(context);
-          } catch {
-            // User is not authenticated
-          }
-          
-          if (!user || user.role !== 'ADMIN') {
-            throw new ForbiddenError('This dog record is not available');
-          }
+        // Check if user is allowed to view this dog based on approval status
+        let user = null;
+        try {
+          user = await checkAuth(context);
+        } catch {
+          // User is not authenticated
+        }
+        
+        // Only admin users can see non-approved dogs
+        if (dog.approvalStatus !== 'APPROVED' && (!user || user.role !== 'ADMIN')) {
+          throw new ForbiddenError('This dog record is not available');
         }
         
         return dog;
@@ -273,12 +279,31 @@ const dogResolvers = {
     },
     
     // Get a dog's pedigree with specified generations
-    dogPedigree: async (_: any, { dogId, generations = 3 }: { dogId: string; generations?: number }) => {
-      // Safely convert dogId to number if it's passed as a string
-      // No need to convert string to number anymore as we're using UUIDs
-      const root = await fetchDogPedigreeRecursive(dogId, generations);
+    dogPedigree: async (_: any, { dogId, generations = 3 }: { dogId: string; generations?: number }, context: any) => {
+      // First check if the dog exists and has proper approval status
+      const dog = await db.Dog.findByPk(dogId);
+      if (!dog) {
+        throw new UserInputError('DOG_NOT_FOUND');
+      }
+      
+      // Check if user is allowed to view this dog based on approval status
+      let user = null;
+      try {
+        user = await checkAuth(context);
+      } catch {
+        // User is not authenticated
+      }
+      
+      // Only admin users can see non-approved dogs
+      if (dog.approvalStatus !== 'APPROVED' && (!user || user.role !== 'ADMIN')) {
+        throw new ForbiddenError('This dog pedigree is not available');
+      }
+      
+      // Fetch the pedigree data once we've confirmed access is allowed
+      const isAdmin = !!(user && user.role === 'ADMIN'); // Ensure it's a boolean
+      const root = await fetchDogPedigreeRecursive(dogId, generations, 0, isAdmin);
       if (!root) {
-        throw new Error('DOG_NOT_FOUND');
+        throw new Error('Error fetching pedigree data');
       }
       return root;
     }
