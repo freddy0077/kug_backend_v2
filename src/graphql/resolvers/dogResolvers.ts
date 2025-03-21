@@ -129,7 +129,7 @@ const dogResolvers = {
       breedId?: string;  // Changed from number to string for UUID
       gender?: string;
       ownerId?: string;  // Changed from number to string for UUID
-      approvalStatus?: string; // 'pending', 'approved', 'declined'
+      approvalStatus?: string; // 'PENDING', 'APPROVED', 'DECLINED'
       sortBy?: DogSortField;
       sortDirection?: SortDirection;
     }, context: any) => {

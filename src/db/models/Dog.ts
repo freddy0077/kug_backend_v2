@@ -23,7 +23,7 @@ interface DogAttributes {
   sireId: string | null;  // Changed from number to string for UUID
   damId: string | null;   // Changed from number to string for UUID
   litterId: string | null; // Reference to the litter this dog belongs to as a puppy
-  approvalStatus: string; // 'pending', 'approved', 'declined'
+  approvalStatus: string; // 'PENDING', 'APPROVED', 'DECLINED'
   approvedBy: string | null; // Reference to the user who approved/declined
   approvalDate: Date | null; // When the approval/decline occurred
   approvalNotes: string | null; // Optional notes explaining the decision
@@ -245,9 +245,9 @@ export const initDogModel = (sequelize: Sequelize): typeof Dog => {
     approvalStatus: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: 'pending',
+      defaultValue: 'PENDING',
       validate: {
-        isIn: [['pending', 'approved', 'declined']],
+        isIn: [['PENDING', 'APPROVED', 'DECLINED']],
       },
       field: 'approval_status'
     },
