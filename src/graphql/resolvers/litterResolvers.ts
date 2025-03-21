@@ -389,110 +389,30 @@ const Litter = {
   sire: async (parent: LitterAttributes) => {
     if (!parent.sireId) {
       console.warn(`Litter ${parent.id} has no sireId`);
-      // Return complete placeholder dog with all required fields
-      return {
-        id: 'missing-dog',
-        name: '[Deleted Dog]',
-        gender: 'male',
-        breed: '[Unknown]',
-        breedId: null,
-        dateOfBirth: new Date(),
-        registrationNumber: '[Deleted]',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Additional fields to match Dog type
-        isNeutered: false,
-        microchipNumber: null,
-        color: null,
-        titles: [],
-        height: null,
-        weight: null,
-        biography: null,
-        mainImageUrl: null,
-        dateOfDeath: null
-      };
+      // Now that sire is nullable in the schema, we can return null
+      return null;
     }
     
     const sire = await db.Dog.findByPk(parent.sireId);
     if (!sire) {
       console.warn(`Sire dog with ID ${parent.sireId} not found for litter ${parent.id}`);
-      // Return complete placeholder for deleted dog
-      return {
-        id: parent.sireId,
-        name: '[Deleted Dog]',
-        gender: 'male',
-        breed: '[Unknown]',
-        breedId: null,
-        dateOfBirth: new Date(),
-        registrationNumber: '[Deleted]',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Additional fields to match Dog type
-        isNeutered: false,
-        microchipNumber: null,
-        color: null,
-        titles: [],
-        height: null,
-        weight: null,
-        biography: null,
-        mainImageUrl: null,
-        dateOfDeath: null
-      };
+      // Now that sire is nullable in schema, we can return null for not found dogs
+      return null;
     }
     return sire;
   },
   dam: async (parent: LitterAttributes) => {
     if (!parent.damId) {
       console.warn(`Litter ${parent.id} has no damId`);
-      // Return complete placeholder dog with all required fields
-      return {
-        id: 'missing-dog',
-        name: '[Deleted Dog]',
-        gender: 'female',
-        breed: '[Unknown]',
-        breedId: null,
-        dateOfBirth: new Date(),
-        registrationNumber: '[Deleted]',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Additional fields to match Dog type
-        isNeutered: false,
-        microchipNumber: null,
-        color: null,
-        titles: [],
-        height: null,
-        weight: null,
-        biography: null,
-        mainImageUrl: null,
-        dateOfDeath: null
-      };
+      // Now that dam is nullable in the schema, we can return null
+      return null;
     }
     
     const dam = await db.Dog.findByPk(parent.damId);
     if (!dam) {
       console.warn(`Dam dog with ID ${parent.damId} not found for litter ${parent.id}`);
-      // Return complete placeholder for deleted dog
-      return {
-        id: parent.damId,
-        name: '[Deleted Dog]',
-        gender: 'female',
-        breed: '[Unknown]',
-        breedId: null,
-        dateOfBirth: new Date(),
-        registrationNumber: '[Deleted]',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        // Additional fields to match Dog type
-        isNeutered: false,
-        microchipNumber: null,
-        color: null,
-        titles: [],
-        height: null,
-        weight: null,
-        biography: null,
-        mainImageUrl: null,
-        dateOfDeath: null
-      };
+      // Now that dam is nullable in schema, we can return null for not found dogs
+      return null;
     }
     return dam;
   },

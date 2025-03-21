@@ -731,8 +731,8 @@ const typeDefs = gql`
     malePuppies: Int
     femalePuppies: Int
     notes: String
-    sire: Dog!
-    dam: Dog!
+    sire: Dog
+    dam: Dog
     puppies: [Dog]
     createdAt: DateTime!
     updatedAt: DateTime!
