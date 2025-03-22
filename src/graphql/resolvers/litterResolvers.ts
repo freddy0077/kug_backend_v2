@@ -258,6 +258,8 @@ const litterMutations = {
       });
 
       // If puppy details are provided, create them right away
+      console.log(`Creating litter ${litterName} with puppy details:`, input.puppyDetails || 'No puppy details provided');
+      
       if (input.puppyDetails && input.puppyDetails.length > 0) {
         const puppies = input.puppyDetails.map((puppy: any) => ({
           id: uuidv4(),
@@ -275,7 +277,11 @@ const litterMutations = {
           approvalStatus: 'PENDING', // Add default approval status
         }));
 
+        console.log(`Creating ${puppies.length} puppies for litter ${newLitter.id}`);
         await db.Dog.bulkCreate(puppies);
+        console.log('Puppies created successfully');
+      } else {
+        console.log(`No puppies were created for litter ${newLitter.id} because no puppy details were provided`);
       }
 
       return newLitter;
@@ -417,11 +423,19 @@ const Litter = {
     return dam;
   },
   puppies: async (parent: LitterAttributes) => {
-    return db.Dog.findAll({
+    console.log(`Finding puppies for litter ${parent.id}`);
+    const puppies = await db.Dog.findAll({
       where: {
         litterId: parent.id,
       },
     });
+    console.log(`Found ${puppies.length} puppies for litter ${parent.id}`);
+    if (puppies.length === 0) {
+      console.log(`Litter ${parent.id} (${parent.litterName}) has no puppies in the database`);
+    } else {
+      console.log(`Puppies:`, puppies.map(p => ({ id: p.id, name: p.name })));
+    }
+    return puppies;
   },
 };
 
