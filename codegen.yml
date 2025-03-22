@@ -8,3 +8,8 @@ generates:
       scalars:
         Upload: File # or any other type you want to use
         DateTime: Date
+  ./schema.json:
+    plugins:
+      - introspection
+    config:
+      minify: true

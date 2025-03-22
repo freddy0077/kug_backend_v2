@@ -8,28 +8,32 @@ export declare enum HealthRecordType {
     OTHER = "OTHER"
 }
 interface HealthRecordAttributes {
-    id: number;
-    dogId: number;
+    id: string;
+    dogId: string;
     date: Date;
     veterinarian: string | null;
+    vetName: string | null;
     description: string;
     results: string | null;
     type: HealthRecordType;
     attachmentUrl: string | null;
+    documentUrl: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
 interface HealthRecordCreationAttributes extends Optional<HealthRecordAttributes, 'id' | 'createdAt' | 'updatedAt'> {
 }
 declare class HealthRecord extends Model<HealthRecordAttributes, HealthRecordCreationAttributes> implements HealthRecordAttributes {
-    id: number;
-    dogId: number;
+    id: string;
+    dogId: string;
     date: Date;
     veterinarian: string | null;
+    vetName: string | null;
     description: string;
     results: string | null;
     type: HealthRecordType;
     attachmentUrl: string | null;
+    documentUrl: string | null;
     readonly createdAt: Date;
     readonly updatedAt: Date;
     static associate(models: any): void;

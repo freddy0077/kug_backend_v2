@@ -7,7 +7,7 @@ export declare enum UserRole {
     VIEWER = "VIEWER"
 }
 interface UserAttributes {
-    id: number;
+    id: string;
     email: string;
     password: string;
     firstName: string;
@@ -16,14 +16,14 @@ interface UserAttributes {
     profileImageUrl: string | null;
     isActive: boolean;
     lastLogin: Date | null;
-    ownerId: number | null;
+    ownerId: string | null;
     createdAt: Date;
     updatedAt: Date;
 }
 interface UserCreationAttributes extends Optional<UserAttributes, 'id' | 'profileImageUrl' | 'isActive' | 'lastLogin' | 'createdAt' | 'updatedAt'> {
 }
 declare class User extends Model<UserAttributes, UserCreationAttributes> implements UserAttributes {
-    id: number;
+    id: string;
     email: string;
     password: string;
     firstName: string;
@@ -32,7 +32,7 @@ declare class User extends Model<UserAttributes, UserCreationAttributes> impleme
     profileImageUrl: string | null;
     isActive: boolean;
     lastLogin: Date | null;
-    ownerId: number | null;
+    ownerId: string | null;
     readonly createdAt: Date;
     readonly updatedAt: Date;
     get fullName(): string;

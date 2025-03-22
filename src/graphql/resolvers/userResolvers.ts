@@ -223,7 +223,7 @@ export const userResolvers = {
             lastName,
             role,
             ownerId,
-            isActive: true,
+            isActive: false,
             lastLogin: new Date()
           }, { transaction });
           

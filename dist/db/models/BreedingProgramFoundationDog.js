@@ -19,6 +19,7 @@ class BreedingProgramFoundationDog extends sequelize_1.Model {
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
+                field: 'breeding_program_id'
             },
             dogId: {
                 type: sequelize_1.DataTypes.INTEGER,
@@ -28,6 +29,7 @@ class BreedingProgramFoundationDog extends sequelize_1.Model {
                     key: 'id',
                 },
                 onDelete: 'CASCADE',
+                field: 'dog_id'
             },
         }, {
             sequelize,

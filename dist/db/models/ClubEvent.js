@@ -25,6 +25,7 @@ const initClubEventModel = (sequelize) => {
             },
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
+            field: 'club_id'
         },
         eventId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -35,36 +36,44 @@ const initClubEventModel = (sequelize) => {
             },
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
+            field: 'event_id'
         },
         membersOnly: {
             type: sequelize_1.DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+            field: 'members_only'
         },
         memberRegistrationFee: {
             type: sequelize_1.DataTypes.FLOAT,
             allowNull: true,
+            field: 'member_registration_fee'
         },
         nonMemberRegistrationFee: {
             type: sequelize_1.DataTypes.FLOAT,
             allowNull: true,
+            field: 'non_member_registration_fee'
         },
         maxParticipants: {
             type: sequelize_1.DataTypes.INTEGER,
             allowNull: true,
+            field: 'max_participants'
         },
         currentParticipants: {
             type: sequelize_1.DataTypes.INTEGER,
             allowNull: false,
             defaultValue: 0,
+            field: 'current_participants'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

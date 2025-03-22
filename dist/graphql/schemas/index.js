@@ -33,6 +33,7 @@ const typeDefs = (0, graphql_tag_1.gql) `
     BREED
     DATE_OF_BIRTH
     REGISTRATION_NUMBER
+    CREATED_AT
   }
   
   enum CompetitionSortField {
@@ -41,10 +42,28 @@ const typeDefs = (0, graphql_tag_1.gql) `
     POINTS
     EVENT_NAME
   }
+  
+  enum DogRole {
+    SIRE
+    DAM
+    BOTH
+  }
 
   enum SortDirection {
     ASC
     DESC
+  }
+  
+  enum ApprovalStatus {
+    PENDING
+    APPROVED
+    DECLINED
+  }
+  
+  enum DogRole {
+    SIRE
+    DAM
+    BOTH
   }
   
   enum LogLevel {
@@ -216,6 +235,7 @@ const typeDefs = (0, graphql_tag_1.gql) `
     name: String!
     registrationNumber: String!
     breed: String!
+    breedObj: Breed
     gender: String!
     dateOfBirth: DateTime!
     color: String
@@ -224,6 +244,15 @@ const typeDefs = (0, graphql_tag_1.gql) `
     coefficient: Float
     sire: PedigreeNode
     dam: PedigreeNode
+  }
+  
+  type PedigreeCreationResult {
+    id: ID!
+    dog: Dog!
+    sire: PedigreeCreationResult
+    dam: PedigreeCreationResult
+    generation: Int!
+    coefficient: Float
   }
   
   type BreedingRecord {
@@ -333,10 +362,12 @@ const typeDefs = (0, graphql_tag_1.gql) `
     dogId: ID!
     date: DateTime!
     veterinarian: String
+    vetName: String  # Alias for veterinarian_name
     description: String!
     results: String
     type: HealthRecordType!
     attachmentUrl: String
+    attachments: String  # Alias for document_url
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -414,6 +445,8 @@ const typeDefs = (0, graphql_tag_1.gql) `
     eventDate: DateTime!
     location: String!
     rank: Int!
+    place: Int  # Alias for rank
+    score: Float  # Alias for points
     title_earned: String
     judge: String!
     points: Float!
@@ -493,6 +526,7 @@ const typeDefs = (0, graphql_tag_1.gql) `
     status: BreedingPairStatus!
     createdAt: DateTime!
     updatedAt: DateTime!
+    geneticAnalysis: GeneticAnalysis
   }
 
   type PaginatedBreedingPrograms {
@@ -508,10 +542,32 @@ const typeDefs = (0, graphql_tag_1.gql) `
   }
 
   # Types
+  type Breed {
+    id: ID!
+    name: String!
+    group: String
+    origin: String
+    description: String
+    temperament: String
+    average_lifespan: String
+    average_height: String
+    average_weight: String
+    dogs: [Dog]
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+
+  type PaginatedBreeds {
+    totalCount: Int!
+    hasMore: Boolean!
+    items: [Breed!]!
+  }
+  
   type Dog {
     id: ID!
     name: String!
     breed: String!
+    breedObj: Breed
     gender: String!
     dateOfBirth: DateTime!  # Always required as Date, never undefined
     dateOfDeath: DateTime
@@ -532,6 +588,11 @@ const typeDefs = (0, graphql_tag_1.gql) `
     sire: Dog
     dam: Dog
     offspring: [Dog]
+    litter: Litter
+    approvalStatus: ApprovalStatus!
+    approvedBy: User
+    approvalDate: DateTime
+    approvalNotes: String
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -552,6 +613,8 @@ const typeDefs = (0, graphql_tag_1.gql) `
     startDate: DateTime!
     endDate: DateTime
     is_current: Boolean!  # Note field name is_current (not is_active)
+    isCurrent: Boolean!  # Alias for is_current in camelCase
+    transferDocumentUrl: String
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -573,9 +636,11 @@ const typeDefs = (0, graphql_tag_1.gql) `
     dog: Dog!
     date: DateTime!
     veterinarian: String
+    vetName: String  # Alias for veterinarian_name
     description: String!  # Note: field is description (not diagnosis)
     results: String  # Note: field is results (not test_results)
     attachmentUrl: String
+    attachments: String  # Alias for document_url
     createdAt: DateTime!
     updatedAt: DateTime!
   }
@@ -587,6 +652,8 @@ const typeDefs = (0, graphql_tag_1.gql) `
     eventDate: DateTime!
     category: String
     rank: Int
+    place: Int  # Alias for rank
+    score: Float  # Alias for points
     title_earned: String  # Note: field is title_earned (not certificate)
     points: Float
     createdAt: DateTime!
@@ -604,6 +671,12 @@ const typeDefs = (0, graphql_tag_1.gql) `
     message: String
   }
   
+  type RegisterLitterPuppiesResponse {
+    success: Boolean!
+    message: String!
+    puppies: [Dog]
+  }
+  
   # Ownership types
   type Ownership {
     id: ID!
@@ -611,7 +684,8 @@ const typeDefs = (0, graphql_tag_1.gql) `
     owner: Owner!
     startDate: DateTime!
     endDate: DateTime
-    is_current: Boolean!
+    is_current: Boolean!  # Note field name is_current (not is_active)
+    isCurrent: Boolean!  # Alias for is_current in camelCase
     transferDocumentUrl: String
     createdAt: DateTime!
     updatedAt: DateTime!
@@ -646,16 +720,63 @@ const typeDefs = (0, graphql_tag_1.gql) `
     newOwnership: Ownership!
     dog: Dog!
   }
+  
+  # Litter type definition
+  type Litter {
+    id: ID!
+    litterName: String!
+    registrationNumber: String
+    breedingRecordId: String
+    whelpingDate: DateTime!
+    totalPuppies: Int!
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+    sire: Dog
+    dam: Dog
+    puppies: [Dog]
+    createdAt: DateTime!
+    updatedAt: DateTime!
+  }
+  
+  # Litter connection for pagination
+  type LitterConnection {
+    totalCount: Int!
+    hasMore: Boolean!
+    items: [Litter!]!
+  }
 
   # Inputs
+  input CreateBreedInput {
+    name: String!
+    group: String
+    origin: String
+    description: String
+    temperament: String
+    average_lifespan: String
+    average_height: String
+    average_weight: String
+  }
+  
+  input UpdateBreedInput {
+    name: String
+    group: String
+    origin: String
+    description: String
+    temperament: String
+    average_lifespan: String
+    average_height: String
+    average_weight: String
+  }
+
   input CreateDogInput {
     name: String!
     breed: String!
+    breedId: ID
     gender: String!
     dateOfBirth: DateTime!  # Must be a valid Date, never undefined
     dateOfDeath: DateTime
     color: String
-    registrationNumber: String!
     microchipNumber: String
     titles: [String]
     isNeutered: Boolean
@@ -671,6 +792,7 @@ const typeDefs = (0, graphql_tag_1.gql) `
   input UpdateDogInput {
     name: String
     breed: String
+    breedId: ID
     gender: String
     dateOfBirth: DateTime
     dateOfDeath: DateTime
@@ -691,6 +813,54 @@ const typeDefs = (0, graphql_tag_1.gql) `
     url: String!
     caption: String
     isPrimary: Boolean
+  }
+  
+  # Litter Input Types
+  input LitterInput {
+    breedingRecordId: ID
+    sireId: ID!
+    damId: ID!
+    litterName: String!
+    registrationNumber: String
+    whelpingDate: DateTime!
+    totalPuppies: Int!
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+    puppyDetails: [PuppyDetailInput]
+  }
+  
+  input UpdateLitterInput {
+    litterName: String
+    registrationNumber: String
+    whelpingDate: DateTime
+    totalPuppies: Int
+    malePuppies: Int
+    femalePuppies: Int
+    notes: String
+  }
+  
+  input PuppyDetailInput {
+    name: String!
+    gender: String!
+    color: String
+    markings: String
+    microchipNumber: String
+    isCollapsed: Boolean
+  }
+  
+  input RegisterLitterPuppiesInput {
+    litterId: ID!
+    puppies: [PuppyRegistrationInput!]!
+  }
+  
+  input PuppyRegistrationInput {
+    name: String!
+    gender: String!
+    color: String!
+    microchipNumber: String
+    isNeutered: Boolean
+    ownerId: ID
   }
 
   # Event Inputs
@@ -800,6 +970,15 @@ const typeDefs = (0, graphql_tag_1.gql) `
     puppyIds: [ID]
   }
   
+  # Pedigree Inputs
+  input CreatePedigreeInput {
+    dogId: ID!
+    sireId: ID
+    damId: ID
+    generation: Int = 2
+    coefficient: Float = 0
+  }
+  
   # Breeding Program Inputs
   input CreateBreedingProgramInput {
     name: String!
@@ -899,14 +1078,163 @@ const typeDefs = (0, graphql_tag_1.gql) `
   }
   
   # Queries
+  # Dog genetic relationship extension
+  extend type Dog {
+    genotypes: [DogGenotype!]
+  }
+
+  # Genetic trait inheritance types
+  type GeneticTrait {
+    id: ID!
+    name: String!
+    description: String
+    inheritancePattern: InheritancePattern!
+    alleles: [Allele!]!
+    breedPrevalence: [BreedTraitPrevalence!]
+    healthImplications: String
+    testingOptions: [GeneticTest!]
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type Allele {
+    id: ID!
+    symbol: String!
+    name: String!
+    description: String
+    dominant: Boolean!
+    traitId: ID!
+    trait: GeneticTrait!
+  }
+
+  type DogGenotype {
+    id: ID!
+    dogId: ID!
+    dog: Dog
+    traitId: ID!
+    trait: GeneticTrait!
+    genotype: String!
+    testMethod: GeneticTestMethod
+    testDate: DateTime
+    confidence: Float
+    notes: String
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type BreedTraitPrevalence {
+    id: ID!
+    breedId: ID!
+    breed: Breed!
+    traitId: ID!
+    trait: GeneticTrait!
+    frequency: Float!
+    studyReference: String
+    notes: String
+  }
+
+  type GeneticTest {
+    id: ID!
+    name: String!
+    provider: String!
+    description: String
+    traits: [GeneticTrait!]!
+    accuracy: Float
+    cost: Float
+    turnaroundTime: Int
+    sampleType: String
+    url: String
+  }
+
+  type GeneticAnalysis {
+    id: ID!
+    breedingPairId: ID
+    sireId: ID!
+    sire: Dog!
+    damId: ID!
+    dam: Dog!
+    traitPredictions: [TraitPrediction!]!
+    overallCompatibility: Float!
+    riskFactors: [GeneticRiskFactor!]
+    recommendations: String
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type TraitPrediction {
+    id: ID!
+    analysisId: ID!
+    traitId: ID!
+    trait: GeneticTrait!
+    possibleGenotypes: [GenotypeOutcome!]!
+    notes: String
+  }
+
+  type GenotypeOutcome {
+    genotype: String!
+    probability: Float!
+    phenotype: String!
+    isCarrier: Boolean!
+    healthImplications: String
+  }
+
+  type GeneticRiskFactor {
+    traitId: ID!
+    trait: GeneticTrait!
+    riskLevel: RiskLevel!
+    description: String!
+    recommendations: String
+  }
+
+  enum InheritancePattern {
+    AUTOSOMAL_DOMINANT
+    AUTOSOMAL_RECESSIVE
+    X_LINKED_DOMINANT
+    X_LINKED_RECESSIVE
+    POLYGENIC
+    CODOMINANT
+    INCOMPLETE_DOMINANCE
+    EPISTASIS
+    MATERNAL
+  }
+
+  enum GeneticTestMethod {
+    DNA_TEST
+    PEDIGREE_ANALYSIS
+    PHENOTYPE_EXAMINATION
+    CARRIER_TESTING
+    LINKAGE_TESTING
+  }
+
+  enum RiskLevel {
+    NONE
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
   type Query {
+    breeds(
+      offset: Int = 0
+      limit: Int = 20
+      searchTerm: String
+      sortDirection: SortDirection = ASC
+    ): PaginatedBreeds!
+    
+    breed(id: ID!): Breed
+    
+    breedByName(name: String!): Breed
+    
     dogs(
       offset: Int = 0
       limit: Int = 20
       searchTerm: String
       breed: String
+      breedId: ID
       gender: String
       ownerId: ID
+      approvalStatus: ApprovalStatus
       sortBy: DogSortField = NAME
       sortDirection: SortDirection = ASC
     ): PaginatedDogs!
@@ -938,6 +1266,26 @@ const typeDefs = (0, graphql_tag_1.gql) `
     ): PaginatedOwnerships!
     
     ownership(id: ID!): Ownership
+    
+    # Litter Queries
+    litters(
+      offset: Int = 0
+      limit: Int = 20
+      ownerId: ID
+      breedId: ID
+      fromDate: DateTime
+      toDate: DateTime
+      searchTerm: String
+    ): LitterConnection!
+    
+    litter(id: ID!): Litter
+    
+    dogLitters(
+      dogId: ID!
+      role: DogRole = BOTH
+      offset: Int = 0
+      limit: Int = 20
+    ): LitterConnection!
     
     # Pedigree Queries
     # Note: dogPedigree query is defined above
@@ -1056,6 +1404,18 @@ const typeDefs = (0, graphql_tag_1.gql) `
     ): PaginatedUsers!
     
     user(id: ID!): User
+
+    # Genetic calculator queries
+    geneticTraits(breedId: ID): [GeneticTrait!]!
+    geneticTrait(id: ID!): GeneticTrait
+    dogGenotypes(dogId: ID!): [DogGenotype!]!
+    breedGeneticProfile(breedId: ID!): [BreedTraitPrevalence!]!
+    geneticTests: [GeneticTest!]!
+    
+    # Primary calculator functions
+    calculateGeneticCompatibility(sireId: ID!, damId: ID!): GeneticAnalysis!
+    predictOffspringTraits(sireId: ID!, damId: ID!, traitIds: [ID!]): [TraitPrediction!]!
+    recommendBreedingPairs(dogId: ID!, count: Int = 5): [BreedingPair!]!
   }
 
   # Mutations
@@ -1087,6 +1447,13 @@ const typeDefs = (0, graphql_tag_1.gql) `
   }
   
   type Mutation {
+    # Breed Mutations
+    createBreed(input: CreateBreedInput!): Breed!
+    
+    updateBreed(id: ID!, input: UpdateBreedInput!): Breed!
+    
+    deleteBreed(id: ID!): DeletionResult!
+    
     # Competition Mutations
     createCompetitionResult(input: CreateCompetitionInput!): CompetitionResult!
     
@@ -1108,6 +1475,7 @@ const typeDefs = (0, graphql_tag_1.gql) `
     linkLitterToBreedingPair(breedingPairId: ID!, breedingRecordId: ID!): BreedingPair!
     
     # Dog Mutations
+    # Creates a dog with 'pending' approval status by default
     createDog(input: CreateDogInput!): Dog!
 
     updateDog(id: ID!, input: UpdateDogInput!): Dog!
@@ -1115,6 +1483,10 @@ const typeDefs = (0, graphql_tag_1.gql) `
     addDogImage(dogId: ID!, input: DogImageInput!): DogImage!
 
     deleteDog(id: ID!): DeletionResult!
+    
+    approveDog(id: ID!, notes: String): Dog!
+    
+    declineDog(id: ID!, notes: String): Dog!
 
     # Health Record Mutations
     createHealthRecord(input: CreateHealthRecordInput!): HealthRecord!
@@ -1125,6 +1497,13 @@ const typeDefs = (0, graphql_tag_1.gql) `
     
     # Temporarily modified to accept a URL instead of file upload
     uploadHealthRecordAttachment(healthRecordId: ID!, fileUrl: String!): HealthRecord!
+    
+    # Litter Mutations
+    createLitter(input: LitterInput!): Litter!
+    
+    updateLitter(id: ID!, input: UpdateLitterInput!): Litter!
+    
+    registerLitterPuppies(input: RegisterLitterPuppiesInput!): RegisterLitterPuppiesResponse!
     
     # System & Audit Log Mutations
     createSystemLog(message: String!, level: LogLevel!, source: String!, details: String, stackTrace: String, ipAddress: String): SystemLog!
@@ -1148,6 +1527,8 @@ const typeDefs = (0, graphql_tag_1.gql) `
     createBreedingRecord(input: BreedingRecordInput!): BreedingRecord!
     
     updateBreedingRecord(id: ID!, input: UpdateBreedingRecordInput!): BreedingRecord!
+    
+    createPedigree(input: CreatePedigreeInput!): PedigreeCreationResult!
     
     linkDogToParents(dogId: ID!, sireId: ID, damId: ID): Dog!
     
@@ -1174,6 +1555,25 @@ const typeDefs = (0, graphql_tag_1.gql) `
     registerDogForEvent(eventId: ID!, dogId: ID!): EventRegistration!
 
     publishEvent(id: ID!): Event!
+
+    # Genetic calculator mutations
+    createGeneticTrait(name: String!, description: String, inheritancePattern: InheritancePattern!, healthImplications: String): GeneticTrait!
+    updateGeneticTrait(id: ID!, name: String, description: String, inheritancePattern: InheritancePattern, healthImplications: String): GeneticTrait!
+    deleteGeneticTrait(id: ID!): Boolean!
+    
+    createAllele(traitId: ID!, symbol: String!, name: String!, description: String, dominant: Boolean!): Allele!
+    updateAllele(id: ID!, symbol: String, name: String, description: String, dominant: Boolean): Allele!
+    deleteAllele(id: ID!): Boolean!
+    
+    recordDogGenotype(dogId: ID!, traitId: ID!, genotype: String!, testMethod: GeneticTestMethod, testDate: DateTime, confidence: Float, notes: String): DogGenotype!
+    updateDogGenotype(id: ID!, genotype: String, testMethod: GeneticTestMethod, testDate: DateTime, confidence: Float, notes: String): DogGenotype!
+    deleteDogGenotype(id: ID!): Boolean!
+    
+    createBreedTraitPrevalence(breedId: ID!, traitId: ID!, frequency: Float!, studyReference: String, notes: String): BreedTraitPrevalence!
+    updateBreedTraitPrevalence(id: ID!, frequency: Float, studyReference: String, notes: String): BreedTraitPrevalence!
+    deleteBreedTraitPrevalence(id: ID!): Boolean!
+    
+    saveGeneticAnalysis(sireId: ID!, damId: ID!, breedingPairId: ID, recommendations: String): GeneticAnalysis!
   }
 `;
 exports.default = typeDefs;

@@ -8,19 +8,64 @@ const breedingProgramResolvers_1 = require("./breedingProgramResolvers");
 const breedingProgramMutations_1 = require("./breedingProgramMutations");
 const breedingPairMutations_1 = require("./breedingPairMutations");
 const models_1 = __importDefault(require("../../db/models"));
+const sequelize_1 = require("sequelize");
+const breedingProgramMutations_2 = require("./breedingProgramMutations");
 const { BreedingProgram, Dog, Owner, BreedingPair, BreedingRecord } = models_1.default;
 /**
  * Resolvers for the BreedingProgram and BreedingPair types
  */
 exports.breedingResolvers = {
     Query: {
-        ...breedingProgramResolvers_1.breedingProgramResolvers.Query
+        ...breedingProgramResolvers_1.breedingProgramResolvers.Query,
+        breedingPrograms: async (_, { offset = 0, limit = 20, searchTerm, breederId, breed, status, includePrivate }) => {
+            const where = {};
+            // Filter by search term
+            if (searchTerm) {
+                where[sequelize_1.Op.or] = [
+                    { name: { [sequelize_1.Op.iLike]: `%${searchTerm}%` } },
+                    { description: { [sequelize_1.Op.iLike]: `%${searchTerm}%` } }
+                ];
+            }
+            // Filter by breederId
+            if (breederId) {
+                where.breederId = (0, breedingProgramMutations_2.toNumericId)(breederId);
+            }
+            // Filter by breed
+            if (breed) {
+                where.breed = breed;
+            }
+            // Filter by status
+            if (status) {
+                where.status = status;
+            }
+            // Handle privacy
+            if (!includePrivate) {
+                where.isPublic = true;
+            }
+            // Fetch breeding programs
+            const { count, rows } = await BreedingProgram.findAndCountAll({
+                where,
+                offset,
+                limit,
+                order: [['createdAt', 'DESC']],
+                include: [
+                    {
+                        model: Owner,
+                        as: 'breeder',
+                        attributes: ['id', 'name']
+                    }
+                ]
+            });
+            return {
+                totalCount: count,
+                programs: rows
+            };
+        }
     },
     Mutation: {
         ...breedingProgramMutations_1.breedingProgramMutations,
         ...breedingPairMutations_1.breedingPairMutations
     },
-    // Type resolvers to handle nested fields
     BreedingProgram: {
         // Resolver for the breeder field
         breeder: async (parent) => {

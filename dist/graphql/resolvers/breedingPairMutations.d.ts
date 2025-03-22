@@ -1,4 +1,9 @@
 import { BreedingPairStatus } from '../../db/models/BreedingPair';
+type BreedingPairStatusUpdateInput = {
+    id: string;
+    status: BreedingPairStatus;
+    notes?: string;
+};
 /**
  * Breeding Pair Mutations
  */
@@ -8,27 +13,27 @@ export declare const breedingPairMutations: {
      */
     addBreedingPair: (_: any, { input }: {
         input: {
-            programId: number;
-            sireId: number;
-            damId: number;
-            plannedBreedingDate?: Date;
-            compatibilityNotes?: string;
-            status: BreedingPairStatus;
+            programId: string;
+            sireId: string;
+            damId: string;
+            plannedBreedingDate?: Date | string | null;
+            compatibilityNotes?: string | null;
+            status?: BreedingPairStatus;
+            geneticCompatibilityScore?: number | string;
         };
-    }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
+    }, context: any) => Promise<any>;
     /**
      * Update the status of a breeding pair
      */
-    updateBreedingPairStatus: (_: any, { id, status, notes }: {
-        id: number;
-        status: BreedingPairStatus;
-        notes?: string;
-    }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
+    updateBreedingPairStatus: (_: any, { input }: {
+        input: BreedingPairStatusUpdateInput;
+    }, context: any) => Promise<any>;
     /**
      * Link a breeding record (litter) to a breeding pair
      */
     linkLitterToBreedingPair: (_: any, { breedingPairId, breedingRecordId }: {
-        breedingPairId: number;
-        breedingRecordId: number;
-    }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
+        breedingPairId: string;
+        breedingRecordId: string;
+    }, context: any) => Promise<any>;
 };
+export {};

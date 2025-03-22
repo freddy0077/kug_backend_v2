@@ -34,18 +34,22 @@ function initAuditLogModel(sequelize) {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
             defaultValue: sequelize_1.DataTypes.NOW,
+            field: 'timestamp'
         },
         action: {
             type: sequelize_1.DataTypes.ENUM(...Object.values(AuditAction)),
             allowNull: false,
+            field: 'action'
         },
         entityType: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'entity_type'
         },
         entityId: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'entity_id'
         },
         userId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -54,32 +58,39 @@ function initAuditLogModel(sequelize) {
                 model: 'Users',
                 key: 'id',
             },
+            field: 'user_id',
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
         },
         previousState: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'previous_state'
         },
         newState: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'new_state'
         },
         ipAddress: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'ip_address'
         },
         metadata: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'metadata'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         tableName: 'AuditLogs',

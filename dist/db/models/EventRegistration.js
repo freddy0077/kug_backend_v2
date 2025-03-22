@@ -25,6 +25,7 @@ const initEventRegistrationModel = (sequelize) => {
             },
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
+            field: 'event_id'
         },
         dogId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -35,19 +36,23 @@ const initEventRegistrationModel = (sequelize) => {
             },
             onUpdate: 'CASCADE',
             onDelete: 'CASCADE',
+            field: 'dog_id'
         },
         registrationDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
             defaultValue: sequelize_1.DataTypes.NOW,
+            field: 'registration_date'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

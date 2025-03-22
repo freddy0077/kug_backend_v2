@@ -13,6 +13,8 @@ const userResolvers_1 = require("./userResolvers");
 const logResolvers_1 = require("./logResolvers");
 const competitionResultResolvers_1 = require("./competitionResultResolvers");
 const breedingResolvers_1 = require("./breedingResolvers");
+const breedResolvers_1 = __importDefault(require("./breedResolvers"));
+const litterResolvers_1 = __importDefault(require("./litterResolvers"));
 const scalarResolvers_1 = require("./scalarResolvers");
 const models_1 = __importDefault(require("../../db/models"));
 // Combine all resolvers
@@ -31,6 +33,8 @@ const resolvers = {
         ...logResolvers_1.logResolvers.Query,
         ...competitionResultResolvers_1.competitionResultResolvers.Query,
         ...breedingResolvers_1.breedingResolvers.Query,
+        ...breedResolvers_1.default.Query,
+        ...litterResolvers_1.default.Query,
     },
     // Merge Mutation resolvers
     Mutation: {
@@ -44,6 +48,8 @@ const resolvers = {
         ...logResolvers_1.logResolvers.Mutation,
         ...competitionResultResolvers_1.competitionResultResolvers.Mutation,
         ...breedingResolvers_1.breedingResolvers.Mutation,
+        ...breedResolvers_1.default.Mutation,
+        ...litterResolvers_1.default.Mutation,
     },
     // Type resolvers
     Dog: dogResolvers_1.dogResolvers.Dog,
@@ -53,6 +59,8 @@ const resolvers = {
         }
     },
     CompetitionResult: competitionResultResolvers_1.competitionResultResolvers.CompetitionResult,
+    // Breed type resolvers
+    Breed: breedResolvers_1.default.Breed,
     // Event type resolvers
     Event: eventResolvers_1.eventResolvers.Event,
     ClubEvent: clubEventResolvers_1.clubEventResolvers.ClubEvent,

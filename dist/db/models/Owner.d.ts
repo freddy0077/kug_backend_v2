@@ -1,7 +1,7 @@
 import { Model, Sequelize, Optional } from 'sequelize';
 interface OwnerAttributes {
-    id: number;
-    userId: number | null;
+    id: string;
+    userId: string | null;
     name: string;
     contactEmail: string | null;
     contactPhone: string | null;
@@ -12,8 +12,8 @@ interface OwnerAttributes {
 interface OwnerCreationAttributes extends Optional<OwnerAttributes, 'id' | 'createdAt' | 'updatedAt'> {
 }
 declare class Owner extends Model<OwnerAttributes, OwnerCreationAttributes> implements OwnerAttributes {
-    id: number;
-    userId: number | null;
+    id: string;
+    userId: string | null;
     name: string;
     contactEmail: string | null;
     contactPhone: string | null;

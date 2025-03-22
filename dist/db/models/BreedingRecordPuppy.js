@@ -15,6 +15,7 @@ const initBreedingRecordPuppyModel = (sequelize) => {
                 key: 'id',
             },
             onDelete: 'CASCADE',
+            field: 'breeding_record_id'
         },
         puppyId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -25,14 +26,17 @@ const initBreedingRecordPuppyModel = (sequelize) => {
                 key: 'id',
             },
             onDelete: 'CASCADE',
+            field: 'puppy_id'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

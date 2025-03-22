@@ -29,6 +29,7 @@ const initBreedingRecordModel = (sequelize) => {
                 model: 'Dogs',
                 key: 'id',
             },
+            field: 'sire_id'
         },
         damId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -37,26 +38,32 @@ const initBreedingRecordModel = (sequelize) => {
                 model: 'Dogs',
                 key: 'id',
             },
+            field: 'dam_id'
         },
         breedingDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'breeding_date'
         },
         litterSize: {
             type: sequelize_1.DataTypes.INTEGER,
             allowNull: true,
+            field: 'litter_size'
         },
         comments: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'comments'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

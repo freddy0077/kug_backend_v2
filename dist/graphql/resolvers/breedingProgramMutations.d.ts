@@ -1,4 +1,5 @@
 import { BreedingProgramStatus } from '../../db/models/BreedingProgram';
+export declare const toNumericId: (id: string | number | null) => number;
 /**
  * Breeding Program Mutations
  */
@@ -10,7 +11,7 @@ export declare const breedingProgramMutations: {
         input: {
             name: string;
             description: string;
-            breederId: number;
+            breederId: string;
             breed: string;
             goals: string[];
             startDate: Date;
@@ -20,14 +21,14 @@ export declare const breedingProgramMutations: {
             notes?: string;
             isPublic: boolean;
             imageUrl?: string;
-            foundationDogIds: number[];
+            foundationDogIds: string[];
         };
     }, context: any) => Promise<import("../../db/models/BreedingProgram").default>;
     /**
      * Update an existing breeding program
      */
     updateBreedingProgram: (_: any, { id, input }: {
-        id: number;
+        id: string;
         input: {
             name?: string;
             description?: string;
@@ -41,14 +42,14 @@ export declare const breedingProgramMutations: {
             notes?: string;
             isPublic?: boolean;
             imageUrl?: string;
-            foundationDogIds?: number[];
+            foundationDogIds?: string[];
         };
     }, context: any) => Promise<import("../../db/models/BreedingProgram").default | null>;
     /**
      * Delete a breeding program
      */
     deleteBreedingProgram: (_: any, { id }: {
-        id: number;
+        id: string;
     }, context: any) => Promise<{
         success: boolean;
         message: string;

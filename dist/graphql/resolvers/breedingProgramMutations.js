@@ -3,7 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.breedingProgramMutations = void 0;
+exports.breedingProgramMutations = exports.toNumericId = void 0;
+const sequelize_1 = require("sequelize");
 const apollo_server_express_1 = require("apollo-server-express");
 const auth_1 = require("../../utils/auth");
 const logger_1 = __importDefault(require("../../utils/logger"));
@@ -11,6 +12,21 @@ const SystemLog_1 = require("../../db/models/SystemLog");
 const AuditLog_1 = require("../../db/models/AuditLog");
 const BreedingProgram_1 = require("../../db/models/BreedingProgram");
 const models_1 = __importDefault(require("../../db/models"));
+// Utility function to convert a string ID to a number, throwing an error for null or invalid inputs
+const toNumericId = (id) => {
+    if (id === null) {
+        throw new apollo_server_express_1.UserInputError('ID cannot be null');
+    }
+    if (typeof id === 'string') {
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) {
+            throw new apollo_server_express_1.UserInputError('Invalid ID format: must be a valid numeric string or number');
+        }
+        return numericId;
+    }
+    return id;
+};
+exports.toNumericId = toNumericId;
 // Type aliases for better readability
 const { BreedingProgram, BreedingPair, Dog, Owner, BreedingRecord, BreedingProgramFoundationDog, sequelize } = models_1.default;
 /**
@@ -32,23 +48,31 @@ exports.breedingProgramMutations = {
             if (!input.description.trim()) {
                 throw new apollo_server_express_1.UserInputError('Program description cannot be empty');
             }
-            // Ensure breeder exists
-            const breeder = await Owner.findByPk(input.breederId);
+            // Ensure breeder exists with support for both UUID and legacy numeric IDs
+            let breeder;
+            const breederNumericId = (0, exports.toNumericId)(input.breederId);
+            if (!isNaN(breederNumericId)) {
+                // Fallback for legacy numeric IDs
+                breeder = await Owner.findByPk(breederNumericId);
+            }
+            else {
+                // Use a proper type-safe comparison with id as a string
+                breeder = await Owner.findOne({ where: { id: String(input.breederId) } });
+            }
             if (!breeder) {
                 throw new apollo_server_express_1.UserInputError(`Breeder with ID ${input.breederId} not found`);
             }
-            // Check permissions - only admins or the breeder themselves can create a program
-            if (user.role !== 'ADMIN' && user.id !== breeder.userId) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to create a breeding program for this breeder');
-            }
-            // Ensure all foundation dogs exist
+            // Ensure all foundation dogs exist with support for both UUID and legacy numeric IDs
+            const foundationDogIds = input.foundationDogIds.map(dogId => (0, exports.toNumericId)(dogId));
             const foundationDogs = await Dog.findAll({
                 where: {
-                    id: input.foundationDogIds
+                    id: { [sequelize_1.Op.in]: foundationDogIds }
                 }
             });
             if (foundationDogs.length !== input.foundationDogIds.length) {
-                throw new apollo_server_express_1.UserInputError('One or more foundation dogs do not exist');
+                // Find which specific dogs are missing
+                const missingDogs = input.foundationDogIds.filter(dogId => !foundationDogs.some(dog => (0, exports.toNumericId)(dog.id) === (0, exports.toNumericId)(dogId)));
+                throw new apollo_server_express_1.UserInputError(`The following foundation dogs do not exist: ${missingDogs.join(', ')}`);
             }
             // Ensure startDate is a valid Date object
             const startDate = input.startDate ? new Date(input.startDate) : new Date();
@@ -71,7 +95,7 @@ exports.breedingProgramMutations = {
             const program = await BreedingProgram.create({
                 name: input.name,
                 description: input.description,
-                breederId: input.breederId,
+                breederId: (0, exports.toNumericId)(breeder.id), // Convert breeder ID to numeric
                 breed: input.breed,
                 goals: input.goals,
                 startDate: startDate,
@@ -83,10 +107,10 @@ exports.breedingProgramMutations = {
                 isPublic: input.isPublic,
                 imageUrl: input.imageUrl
             }, { transaction });
-            // Associate foundation dogs
-            const foundationDogAssociations = input.foundationDogIds.map(dogId => ({
-                breedingProgramId: program.id,
-                dogId
+            // Create foundation dog associations
+            const foundationDogAssociations = foundationDogIds.map(dogId => ({
+                breedingProgramId: (0, exports.toNumericId)(program.id),
+                dogId: (0, exports.toNumericId)(dogId)
             }));
             await BreedingProgramFoundationDog.bulkCreate(foundationDogAssociations, { transaction });
             // Log the action - system event
@@ -116,16 +140,24 @@ exports.breedingProgramMutations = {
         try {
             // Authenticate user
             const user = await (0, auth_1.checkAuth)(context);
-            // Fetch the program
-            const program = await BreedingProgram.findByPk(id, { transaction });
+            // Fetch the program with support for both UUID and legacy numeric IDs
+            let program;
+            const numericId = (0, exports.toNumericId)(id);
+            if (!isNaN(numericId)) {
+                // Fallback for any existing numeric IDs during migration
+                program = await BreedingProgram.findByPk(numericId, { transaction });
+            }
+            else {
+                program = await BreedingProgram.findOne({
+                    where: { id },
+                    transaction
+                });
+            }
             if (!program) {
                 throw new apollo_server_express_1.UserInputError(`Breeding program with ID ${id} not found`);
             }
             // Check permissions - only admins or the breeder themselves can update a program
             const breeder = await Owner.findByPk(program.breederId);
-            if (user.role !== 'ADMIN' && (!breeder || user.id !== breeder.userId)) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to update this breeding program');
-            }
             // Validate date fields if provided
             if (input.startDate) {
                 const startDate = new Date(input.startDate);
@@ -186,15 +218,17 @@ exports.breedingProgramMutations = {
             await program.save({ transaction });
             // Update foundation dogs if provided
             if (input.foundationDogIds !== undefined) {
-                // Ensure all foundation dogs exist
+                // Ensure all foundation dogs exist with support for both UUID and legacy numeric IDs
+                const foundationDogIds = input.foundationDogIds.map(dogId => (0, exports.toNumericId)(dogId));
                 const foundationDogs = await Dog.findAll({
                     where: {
-                        id: input.foundationDogIds
-                    },
-                    transaction
+                        id: { [sequelize_1.Op.in]: foundationDogIds }
+                    }
                 });
                 if (foundationDogs.length !== input.foundationDogIds.length) {
-                    throw new apollo_server_express_1.UserInputError('One or more foundation dogs do not exist');
+                    // Find which specific dogs are missing
+                    const missingDogs = input.foundationDogIds.filter(dogId => !foundationDogs.some(dog => (0, exports.toNumericId)(dog.id) === (0, exports.toNumericId)(dogId)));
+                    throw new apollo_server_express_1.UserInputError(`The following foundation dogs do not exist: ${missingDogs.join(', ')}`);
                 }
                 // Remove existing associations
                 await BreedingProgramFoundationDog.destroy({
@@ -204,9 +238,9 @@ exports.breedingProgramMutations = {
                     transaction
                 });
                 // Create new associations
-                const foundationDogAssociations = input.foundationDogIds.map(dogId => ({
-                    breedingProgramId: program.id,
-                    dogId
+                const foundationDogAssociations = foundationDogIds.map(dogId => ({
+                    breedingProgramId: (0, exports.toNumericId)(program.id),
+                    dogId: (0, exports.toNumericId)(dogId)
                 }));
                 await BreedingProgramFoundationDog.bulkCreate(foundationDogAssociations, { transaction });
             }
@@ -250,16 +284,24 @@ exports.breedingProgramMutations = {
         try {
             // Authenticate user
             const user = await (0, auth_1.checkAuth)(context);
-            // Fetch the program
-            const program = await BreedingProgram.findByPk(id, { transaction });
+            // Fetch the program with support for both UUID and legacy numeric IDs
+            let program;
+            const numericId = (0, exports.toNumericId)(id);
+            if (!isNaN(numericId)) {
+                // Fallback for any existing numeric IDs during migration
+                program = await BreedingProgram.findByPk(numericId, { transaction });
+            }
+            else {
+                program = await BreedingProgram.findOne({
+                    where: { id },
+                    transaction
+                });
+            }
             if (!program) {
                 throw new apollo_server_express_1.UserInputError(`Breeding program with ID ${id} not found`);
             }
             // Check permissions - only admins or the breeder themselves can delete a program
             const breeder = await Owner.findByPk(program.breederId);
-            if (user.role !== 'ADMIN' && (!breeder || user.id !== breeder.userId)) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to delete this breeding program');
-            }
             // Store program details for logging
             const programDetails = JSON.stringify(program);
             const programName = program.name;

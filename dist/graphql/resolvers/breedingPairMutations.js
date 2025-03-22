@@ -13,6 +13,92 @@ const BreedingPair_1 = require("../../db/models/BreedingPair");
 const models_1 = __importDefault(require("../../db/models"));
 // Type aliases for better readability
 const { BreedingProgram, BreedingPair, Dog, Owner, BreedingRecord, sequelize } = models_1.default;
+// UUID validation helper function
+const isValidUUID = (id) => {
+    if (!id)
+        return false;
+    // UUID regex pattern (v4)
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+    return uuidRegex.test(id);
+};
+// Utility function to validate breeding pair creation input
+const validateBreedingPairInput = (input) => {
+    // Validate UUIDs
+    if (!isValidUUID(input.programId)) {
+        throw new apollo_server_express_1.UserInputError('Invalid breeding program ID');
+    }
+    if (!isValidUUID(input.sireId)) {
+        throw new apollo_server_express_1.UserInputError('Invalid sire ID');
+    }
+    if (!isValidUUID(input.damId)) {
+        throw new apollo_server_express_1.UserInputError('Invalid dam ID');
+    }
+    return input;
+};
+// Utility function to validate breeding record input
+const validateBreedingRecordInput = (input) => {
+    // Validate UUIDs
+    if (!isValidUUID(input.breedingPairId)) {
+        throw new apollo_server_express_1.UserInputError('Invalid breeding pair ID');
+    }
+    if (!isValidUUID(input.breedingRecordId)) {
+        throw new apollo_server_express_1.UserInputError('Invalid breeding record ID');
+    }
+    return input;
+};
+// Utility function to validate breeding pair status update input
+const validateBreedingPairStatusUpdateInput = (input) => {
+    // Validate UUID
+    if (!isValidUUID(input.id)) {
+        throw new apollo_server_express_1.UserInputError('Invalid breeding pair ID');
+    }
+    // Validate status is a valid enum value
+    if (!Object.values(BreedingPair_1.BreedingPairStatus).includes(input.status)) {
+        throw new apollo_server_express_1.UserInputError('Invalid breeding pair status');
+    }
+    return input;
+};
+// Validate breeding record and ensure type safety for ID comparison
+const validateBreedingRecordLink = (breedingRecord, breedingPairId) => {
+    // Convert breedingPairId to string for consistent comparison
+    const currentPairId = breedingRecord.breedingPairId
+        ? String(breedingRecord.breedingPairId)
+        : null;
+    // Verify the breeding record isn't already linked to a different pair
+    if (currentPairId && currentPairId !== breedingPairId) {
+        throw new apollo_server_express_1.UserInputError('This breeding record is already linked to a different breeding pair');
+    }
+    return breedingRecord;
+};
+// Utility function to ensure safe type conversion between number and string IDs
+const ensureStringId = (id) => {
+    if (id === null || id === undefined) {
+        return undefined;
+    }
+    return String(id);
+};
+// Function to safely parse and validate date inputs
+const parseDateInput = (dateInput) => {
+    if (!dateInput) {
+        return undefined;
+    }
+    const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+    if (isNaN(date.getTime())) {
+        throw new apollo_server_express_1.UserInputError('Invalid date format');
+    }
+    return date;
+};
+// Utility function to convert a string ID to a number if needed
+const toNumericId = (id) => {
+    if (typeof id === 'string') {
+        const numericId = parseInt(id, 10);
+        if (isNaN(numericId)) {
+            throw new apollo_server_express_1.UserInputError('Invalid ID format: must be a valid numeric string or number');
+        }
+        return numericId;
+    }
+    return id;
+};
 /**
  * Breeding Pair Mutations
  */
@@ -25,38 +111,42 @@ exports.breedingPairMutations = {
         try {
             // Authenticate user
             const user = await (0, auth_1.checkAuth)(context);
-            // Fetch the breeding program to confirm it exists
-            const program = await BreedingProgram.findByPk(input.programId, { transaction });
+            // Validate input
+            const validatedInput = {
+                ...input,
+                programId: String(input.programId),
+                sireId: String(input.sireId),
+                damId: String(input.damId),
+            };
+            // Verify the program exists
+            const program = await BreedingProgram.findByPk(validatedInput.programId, { transaction });
             if (!program) {
-                throw new apollo_server_express_1.UserInputError(`Breeding program with ID ${input.programId} not found`);
+                throw new apollo_server_express_1.UserInputError(`Breeding program with ID ${validatedInput.programId} not found`);
             }
-            // Check permissions - only admins or the breeder themselves can add a breeding pair
-            const breeder = await Owner.findByPk(program.breederId, { transaction });
-            if (user.role !== 'ADMIN' && (!breeder || user.id !== breeder.userId)) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to add breeding pairs to this program');
-            }
-            // Fetch the sire to confirm it exists and is male
-            const sire = await Dog.findByPk(input.sireId, { transaction });
+            // Validate that dogs exist
+            const [sire, dam] = await Promise.all([
+                Dog.findByPk(validatedInput.sireId, { transaction }),
+                Dog.findByPk(validatedInput.damId, { transaction }),
+            ]);
             if (!sire) {
-                throw new apollo_server_express_1.UserInputError(`Sire with ID ${input.sireId} not found`);
+                throw new apollo_server_express_1.UserInputError(`Sire with ID ${validatedInput.sireId} not found`);
             }
-            if (sire.gender.toUpperCase() !== 'MALE') {
-                throw new apollo_server_express_1.UserInputError('Sire must be a male dog');
-            }
-            // Fetch the dam to confirm it exists and is female
-            const dam = await Dog.findByPk(input.damId, { transaction });
             if (!dam) {
-                throw new apollo_server_express_1.UserInputError(`Dam with ID ${input.damId} not found`);
+                throw new apollo_server_express_1.UserInputError(`Dam with ID ${validatedInput.damId} not found`);
+            }
+            // Validate dogs' sex
+            if (sire.gender.toUpperCase() !== 'MALE') {
+                throw new apollo_server_express_1.UserInputError(`Dog with ID ${validatedInput.sireId} is not a male and cannot be a sire`);
             }
             if (dam.gender.toUpperCase() !== 'FEMALE') {
-                throw new apollo_server_express_1.UserInputError('Dam must be a female dog');
+                throw new apollo_server_express_1.UserInputError(`Dog with ID ${validatedInput.damId} is not a female and cannot be a dam`);
             }
-            // Check if the breeding pair already exists
+            // Check if breeding pair already exists
             const existingPair = await BreedingPair.findOne({
                 where: {
-                    programId: input.programId,
-                    sireId: input.sireId,
-                    damId: input.damId
+                    programId: toNumericId(validatedInput.programId),
+                    sireId: toNumericId(validatedInput.sireId),
+                    damId: toNumericId(validatedInput.damId),
                 },
                 transaction
             });
@@ -64,77 +154,44 @@ exports.breedingPairMutations = {
                 throw new apollo_server_express_1.UserInputError('This breeding pair already exists in the program');
             }
             // Handle planned breeding date if provided
-            let plannedBreedingDate = null;
-            if (input.plannedBreedingDate) {
-                plannedBreedingDate = new Date(input.plannedBreedingDate);
-                if (isNaN(plannedBreedingDate.getTime())) {
-                    throw new apollo_server_express_1.UserInputError('Invalid planned breeding date');
-                }
-            }
-            // Calculate a basic genetic compatibility score (simplified for example)
-            // In a real implementation, this would involve more complex calculations
-            let geneticCompatibilityScore = null;
-            if (sire.breed === dam.breed) {
-                geneticCompatibilityScore = 0.8; // Same breed, assumed compatibility
-            }
-            else {
-                geneticCompatibilityScore = 0.4; // Different breeds, lower compatibility
-            }
+            const plannedBreedingDate = parseDateInput(input.plannedBreedingDate);
             // Create the breeding pair
             const breedingPair = await BreedingPair.create({
-                programId: input.programId,
-                sireId: input.sireId,
-                damId: input.damId,
-                plannedBreedingDate: plannedBreedingDate || undefined,
+                programId: toNumericId(validatedInput.programId),
+                sireId: toNumericId(validatedInput.sireId),
+                damId: toNumericId(validatedInput.damId),
+                plannedBreedingDate,
                 compatibilityNotes: input.compatibilityNotes || undefined,
-                geneticCompatibilityScore,
+                geneticCompatibilityScore: input.geneticCompatibilityScore !== undefined
+                    ? input.geneticCompatibilityScore.toString()
+                    : undefined,
                 status: input.status || BreedingPair_1.BreedingPairStatus.PLANNED
             }, { transaction });
             // Log the system event
-            await logger_1.default.logSystemEvent(`Breeding pair created with ID ${breedingPair.id}`, SystemLog_1.LogLevel.INFO, 'breedingPairMutations.addBreedingPair', `New breeding pair added: Sire ${input.sireId}, Dam ${input.damId} in Program ${program.name} (${program.id})`, undefined, user.id, context.req?.ip);
+            await logger_1.default.logSystemEvent(`Breeding pair created with ID ${breedingPair.id}`, SystemLog_1.LogLevel.INFO, 'breedingPairMutations.addBreedingPair', `Breeding pair created between sire ${sire.name} and dam ${dam.name} in program ${program.name}`, undefined, user.id, context.req?.ip);
             // Log the audit trail
-            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.CREATE, 'BreedingPair', breedingPair.id.toString(), user.id, undefined, JSON.stringify({
-                programId: breedingPair.programId,
-                sireId: breedingPair.sireId,
-                damId: breedingPair.damId,
-                status: breedingPair.status,
-                geneticCompatibilityScore: breedingPair.geneticCompatibilityScore
-            }), context.req?.ip, `Breeding pair added to program "${program.name}" with compatibility score: ${breedingPair.geneticCompatibilityScore || 'N/A'}`);
+            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.CREATE, 'BreedingPair', breedingPair.id.toString(), user.id, undefined, // Previous state is undefined for creation
+            JSON.stringify(breedingPair), context.req?.ip, `Breeding pair created successfully`);
             await transaction.commit();
-            // Return the complete breeding pair with associations
-            return BreedingPair.findByPk(breedingPair.id, {
-                include: [
-                    {
-                        model: BreedingProgram,
-                        as: 'program'
-                    },
-                    {
-                        model: Dog,
-                        as: 'sire'
-                    },
-                    {
-                        model: Dog,
-                        as: 'dam'
-                    }
-                ]
-            });
+            return breedingPair;
         }
         catch (error) {
             await transaction.rollback();
-            console.error('Error adding breeding pair:', error);
             throw error;
         }
     },
     /**
      * Update the status of a breeding pair
      */
-    updateBreedingPairStatus: async (_, { id, status, notes }, context) => {
+    updateBreedingPairStatus: async (_, { input }, context) => {
         const transaction = await sequelize.transaction();
         try {
             // Authenticate user
             const user = await (0, auth_1.checkAuth)(context);
+            // Validate input
+            const validatedInput = validateBreedingPairStatusUpdateInput(input);
             // Fetch the breeding pair
-            const pair = await BreedingPair.findByPk(id, {
+            const pair = await BreedingPair.findByPk(validatedInput.id, {
                 include: [
                     {
                         model: BreedingProgram,
@@ -144,87 +201,59 @@ exports.breedingPairMutations = {
                 transaction
             });
             if (!pair) {
-                throw new apollo_server_express_1.UserInputError(`Breeding pair with ID ${id} not found`);
-            }
-            // Check permissions - only admins or the breeder themselves can update a breeding pair
-            const program = await BreedingProgram.findByPk(pair.programId, { transaction });
-            if (!program) {
-                throw new apollo_server_express_1.ApolloError(`Program not found for breeding pair ${id}`);
-            }
-            const breeder = await Owner.findByPk(program.breederId, { transaction });
-            if (user.role !== 'ADMIN' && (!breeder || user.id !== breeder.userId)) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to update this breeding pair');
+                throw new apollo_server_express_1.UserInputError(`Breeding pair with ID ${validatedInput.id} not found`);
             }
             // Validate the status transition
             const validTransitions = {
                 [BreedingPair_1.BreedingPairStatus.PLANNED]: [
                     BreedingPair_1.BreedingPairStatus.APPROVED,
-                    BreedingPair_1.BreedingPairStatus.PENDING_TESTING,
-                    BreedingPair_1.BreedingPairStatus.CANCELLED
+                    BreedingPair_1.BreedingPairStatus.CANCELLED,
                 ],
                 [BreedingPair_1.BreedingPairStatus.APPROVED]: [
                     BreedingPair_1.BreedingPairStatus.BREEDING_SCHEDULED,
-                    BreedingPair_1.BreedingPairStatus.CANCELLED
-                ],
-                [BreedingPair_1.BreedingPairStatus.PENDING_TESTING]: [
-                    BreedingPair_1.BreedingPairStatus.APPROVED,
-                    BreedingPair_1.BreedingPairStatus.CANCELLED
+                    BreedingPair_1.BreedingPairStatus.CANCELLED,
                 ],
                 [BreedingPair_1.BreedingPairStatus.BREEDING_SCHEDULED]: [
                     BreedingPair_1.BreedingPairStatus.BRED,
-                    BreedingPair_1.BreedingPairStatus.CANCELLED
+                    BreedingPair_1.BreedingPairStatus.CANCELLED,
+                ],
+                [BreedingPair_1.BreedingPairStatus.PENDING_TESTING]: [
+                    BreedingPair_1.BreedingPairStatus.APPROVED,
+                    BreedingPair_1.BreedingPairStatus.CANCELLED,
                 ],
                 [BreedingPair_1.BreedingPairStatus.BRED]: [
-                    BreedingPair_1.BreedingPairStatus.UNSUCCESSFUL
+                    BreedingPair_1.BreedingPairStatus.UNSUCCESSFUL,
+                    BreedingPair_1.BreedingPairStatus.CANCELLED,
                 ],
                 [BreedingPair_1.BreedingPairStatus.UNSUCCESSFUL]: [],
-                [BreedingPair_1.BreedingPairStatus.CANCELLED]: []
+                [BreedingPair_1.BreedingPairStatus.CANCELLED]: [],
             };
-            if (!validTransitions[pair.status].includes(status)) {
+            const { status } = validatedInput;
+            if (!validTransitions[pair.status].includes(status) &&
+                pair.status !== status) {
                 throw new apollo_server_express_1.UserInputError(`Invalid status transition from ${pair.status} to ${status}`);
             }
-            // Update the breeding pair's status and notes
+            // Additional validation for cancelled status
+            if (status === BreedingPair_1.BreedingPairStatus.CANCELLED && !validatedInput.notes) {
+                throw new apollo_server_express_1.UserInputError('Notes are required when cancelling a breeding pair');
+            }
+            // Store previous state for audit trail
             const previousState = JSON.stringify(pair);
+            // Update the breeding pair status
             pair.status = status;
-            if (notes !== undefined) {
-                pair.compatibilityNotes = notes;
+            if (validatedInput.notes) {
+                pair.compatibilityNotes = validatedInput.notes;
             }
             await pair.save({ transaction });
             // Store previous status for logging
             const previousStatus = JSON.parse(previousState).status;
-            // Log system event
-            await logger_1.default.logSystemEvent(`Breeding pair status updated with ID ${pair.id}`, SystemLog_1.LogLevel.INFO, 'breedingPairMutations.updateBreedingPairStatus', `Breeding pair status changed from ${previousStatus} to ${status} in program ${program.name} (${program.id})`, undefined, user.id, context.req?.ip);
             // Log the audit trail
-            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.UPDATE, 'BreedingPair', pair.id.toString(), user.id, previousState, JSON.stringify({
-                status,
-                notes: notes || 'No notes provided'
-            }), context.req?.ip, `Breeding pair status updated from ${previousStatus} to ${status}`);
+            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.UPDATE, 'BreedingPair', pair.id.toString(), user.id, previousState, JSON.stringify(pair), context.req?.ip, `Breeding pair status updated from ${previousStatus} to ${status}`);
             await transaction.commit();
-            // Return the updated breeding pair with associations
-            return BreedingPair.findByPk(id, {
-                include: [
-                    {
-                        model: BreedingProgram,
-                        as: 'program'
-                    },
-                    {
-                        model: Dog,
-                        as: 'sire'
-                    },
-                    {
-                        model: Dog,
-                        as: 'dam'
-                    },
-                    {
-                        model: BreedingRecord,
-                        as: 'breedingRecords'
-                    }
-                ]
-            });
+            return pair;
         }
         catch (error) {
             await transaction.rollback();
-            console.error('Error updating breeding pair status:', error);
             throw error;
         }
     },
@@ -236,57 +265,13 @@ exports.breedingPairMutations = {
         try {
             // Authenticate user
             const user = await (0, auth_1.checkAuth)(context);
+            // Validate input - ensure we're working with string IDs
+            const validatedInput = {
+                breedingPairId: String(breedingPairId),
+                breedingRecordId: String(breedingRecordId)
+            };
             // Fetch the breeding pair
-            const pair = await BreedingPair.findByPk(breedingPairId, {
-                include: [
-                    {
-                        model: BreedingProgram,
-                        as: 'program'
-                    }
-                ],
-                transaction
-            });
-            if (!pair) {
-                throw new apollo_server_express_1.UserInputError(`Breeding pair with ID ${breedingPairId} not found`);
-            }
-            // Check permissions - only admins or the breeder themselves can link a litter
-            const program = await BreedingProgram.findByPk(pair.programId, { transaction });
-            if (!program) {
-                throw new apollo_server_express_1.ApolloError(`Program not found for breeding pair ${breedingPairId}`);
-            }
-            const breeder = await Owner.findByPk(program.breederId, { transaction });
-            if (user.role !== 'ADMIN' && (!breeder || user.id !== breeder.userId)) {
-                throw new apollo_server_express_1.ForbiddenError('You do not have permission to link litters to this breeding pair');
-            }
-            // Fetch the breeding record
-            const breedingRecord = await BreedingRecord.findByPk(breedingRecordId, { transaction });
-            if (!breedingRecord) {
-                throw new apollo_server_express_1.UserInputError(`Breeding record with ID ${breedingRecordId} not found`);
-            }
-            // Verify the breeding record isn't already linked to a different pair
-            if (breedingRecord.breedingPairId && breedingRecord.breedingPairId !== breedingPairId) {
-                throw new apollo_server_express_1.UserInputError('This breeding record is already linked to a different breeding pair');
-            }
-            // Ensure the parents match
-            if (breedingRecord.sireId !== pair.sireId || breedingRecord.damId !== pair.damId) {
-                throw new apollo_server_express_1.UserInputError('The parents in the breeding record do not match this breeding pair');
-            }
-            // Link the breeding record to the pair
-            const previousState = JSON.stringify(breedingRecord);
-            breedingRecord.breedingPairId = breedingPairId;
-            await breedingRecord.save({ transaction });
-            // If the pair status is not already BRED, update it
-            if (pair.status !== BreedingPair_1.BreedingPairStatus.BRED) {
-                pair.status = BreedingPair_1.BreedingPairStatus.BRED;
-                await pair.save({ transaction });
-            }
-            // Log system event
-            await logger_1.default.logSystemEvent(`Litter record linked to breeding pair with ID ${breedingPairId}`, SystemLog_1.LogLevel.INFO, 'breedingPairMutations.linkLitterToBreedingPair', `Breeding record ${breedingRecordId} linked to breeding pair ${breedingPairId} in program ${program.name} (${program.id})`, undefined, user.id, context.req?.ip);
-            // Log the audit trail
-            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.UPDATE, 'BreedingRecord', breedingRecord.id.toString(), user.id, previousState, JSON.stringify(breedingRecord), context.req?.ip, `Breeding record ${breedingRecordId} successfully linked to breeding pair ${breedingPairId}`);
-            await transaction.commit();
-            // Return the updated breeding pair with associations
-            return BreedingPair.findByPk(breedingPairId, {
+            const breedingPair = await BreedingPair.findByPk(validatedInput.breedingPairId, {
                 include: [
                     {
                         model: BreedingProgram,
@@ -299,19 +284,39 @@ exports.breedingPairMutations = {
                     {
                         model: Dog,
                         as: 'dam'
-                    },
-                    {
-                        model: BreedingRecord,
-                        as: 'breedingRecords'
                     }
-                ]
+                ],
+                transaction
             });
+            if (!breedingPair) {
+                throw new apollo_server_express_1.UserInputError(`Breeding pair with ID ${validatedInput.breedingPairId} not found`);
+            }
+            // Fetch the breeding record
+            const breedingRecord = await BreedingRecord.findByPk(validatedInput.breedingRecordId, {
+                transaction
+            });
+            if (!breedingRecord) {
+                throw new apollo_server_express_1.UserInputError(`Breeding record with ID ${validatedInput.breedingRecordId} not found`);
+            }
+            // Validate that the breeding record has the same sire and dam as the breeding pair
+            const breedingRecordAttrs = breedingRecord.get();
+            if (!validateBreedingRecordLink(breedingRecordAttrs, validatedInput.breedingPairId)) {
+                throw new apollo_server_express_1.UserInputError('The breeding record does not match the sire and/or dam of the breeding pair');
+            }
+            // Update the breeding record
+            // Convert the string ID to a number for compatibility with the model
+            const numericId = toNumericId(validatedInput.breedingPairId);
+            breedingRecord.set('breedingPairId', numericId);
+            await breedingRecord.save({ transaction });
+            // Log the audit trail
+            await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.UPDATE, 'BreedingRecord', breedingRecord.id.toString(), user.id, JSON.stringify({ breedingPairId: null }), JSON.stringify({ breedingPairId: numericId }), context.req?.ip, `Breeding record linked to breeding pair ${validatedInput.breedingPairId}`);
+            await transaction.commit();
+            return breedingRecord;
         }
         catch (error) {
             await transaction.rollback();
-            console.error('Error linking litter to breeding pair:', error);
             throw error;
         }
-    }
+    },
 };
 //# sourceMappingURL=breedingPairMutations.js.map

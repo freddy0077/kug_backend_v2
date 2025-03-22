@@ -7,6 +7,7 @@
     "dev": "nodemon --watch 'src/**/*.ts' --exec 'ts-node' src/server.ts",
     "build": "tsc -p tsconfig.json",
     "codegen": "graphql-codegen --config codegen.yml",
+    "schema:extract": "ts-node src/utils/extractSchema.ts",
     "db:migrate": "sequelize-cli db:migrate",
     "db:seed": "sequelize-cli db:seed:all",
     "db:migrate:undo": "sequelize-cli db:migrate:undo",

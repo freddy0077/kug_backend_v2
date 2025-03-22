@@ -36,10 +36,12 @@ class BreedingProgram extends sequelize_1.Model {
             name: {
                 type: sequelize_1.DataTypes.STRING,
                 allowNull: false,
+                field: 'name'
             },
             description: {
                 type: sequelize_1.DataTypes.TEXT,
                 allowNull: false,
+                field: 'description'
             },
             breederId: {
                 type: sequelize_1.DataTypes.INTEGER,
@@ -48,49 +50,60 @@ class BreedingProgram extends sequelize_1.Model {
                     model: 'Owners',
                     key: 'id',
                 },
+                field: 'breeder_id'
             },
             breed: {
                 type: sequelize_1.DataTypes.STRING,
                 allowNull: false,
+                field: 'breed'
             },
             goals: {
                 type: sequelize_1.DataTypes.JSON,
                 allowNull: false,
                 defaultValue: [],
+                field: 'goals'
             },
             startDate: {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: false,
+                field: 'start_date'
             },
             endDate: {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: true,
+                field: 'end_date'
             },
             status: {
                 type: sequelize_1.DataTypes.ENUM(...Object.values(BreedingProgramStatus)),
                 allowNull: false,
                 defaultValue: BreedingProgramStatus.PLANNING,
+                field: 'status'
             },
             geneticTestingProtocol: {
                 type: sequelize_1.DataTypes.TEXT,
                 allowNull: true,
+                field: 'genetic_testing_protocol'
             },
             selectionCriteria: {
                 type: sequelize_1.DataTypes.TEXT,
                 allowNull: true,
+                field: 'selection_criteria'
             },
             notes: {
                 type: sequelize_1.DataTypes.TEXT,
                 allowNull: true,
+                field: 'notes'
             },
             isPublic: {
                 type: sequelize_1.DataTypes.BOOLEAN,
                 allowNull: false,
                 defaultValue: false,
+                field: 'is_public'
             },
             imageUrl: {
                 type: sequelize_1.DataTypes.STRING,
                 allowNull: true,
+                field: 'image_url'
             },
         }, {
             sequelize,

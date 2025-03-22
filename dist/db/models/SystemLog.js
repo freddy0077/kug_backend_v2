@@ -28,30 +28,37 @@ function initSystemLogModel(sequelize) {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
             defaultValue: sequelize_1.DataTypes.NOW,
+            field: 'timestamp'
         },
         level: {
             type: sequelize_1.DataTypes.ENUM(...Object.values(LogLevel)),
             allowNull: false,
+            field: 'level'
         },
         message: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: false,
+            field: 'message'
         },
         source: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'source'
         },
         details: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'details'
         },
         stackTrace: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'stack_trace'
         },
         ipAddress: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'ip_address'
         },
         userId: {
             type: sequelize_1.DataTypes.INTEGER,
@@ -62,14 +69,17 @@ function initSystemLogModel(sequelize) {
             },
             onUpdate: 'CASCADE',
             onDelete: 'SET NULL',
+            field: 'user_id'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         tableName: 'SystemLogs',

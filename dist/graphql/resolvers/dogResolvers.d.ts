@@ -1,8 +1,11 @@
+import { Breed } from '../../db/models/Breed';
+import type { DogAttributes } from '../../db/models/Dog';
 declare enum DogSortField {
     NAME = "NAME",
     BREED = "BREED",
     DATE_OF_BIRTH = "DATE_OF_BIRTH",
-    REGISTRATION_NUMBER = "REGISTRATION_NUMBER"
+    REGISTRATION_NUMBER = "REGISTRATION_NUMBER",
+    CREATED_AT = "CREATED_AT"
 }
 declare enum SortDirection {
     Asc = "ASC",
@@ -11,27 +14,27 @@ declare enum SortDirection {
 interface CreateDogInput {
     name: string;
     breed: string;
+    breedId?: string;
     gender: string;
     color: string;
     dateOfBirth: Date;
     dateOfDeath?: Date;
     height?: number;
     weight?: number;
-    registrationNumber?: string;
     microchipNumber?: string;
     isNeutered?: boolean;
-    ownerId?: number;
-    sireId?: number;
-    damId?: number;
+    ownerId?: string;
+    sireId?: string;
+    damId?: string;
     titles?: string[];
     biography?: string;
     mainImageUrl?: string;
 }
 interface UpdateDogInput extends Partial<CreateDogInput> {
-    id: number;
+    id: string;
 }
 interface DogImageInput {
-    dogId: number;
+    dogId: string;
     imageUrl: string;
     url?: string;
     caption?: string;
@@ -39,27 +42,29 @@ interface DogImageInput {
 }
 declare const dogResolvers: {
     Query: {
-        dogs: (_: any, { offset, limit, searchTerm, breed, gender, ownerId, sortBy, sortDirection }: {
+        dogs: (_: any, { offset, limit, searchTerm, breed, breedId, gender, ownerId, approvalStatus, sortBy, sortDirection }: {
             offset?: number;
             limit?: number;
             searchTerm?: string;
             breed?: string;
+            breedId?: string;
             gender?: string;
-            ownerId?: number;
+            ownerId?: string;
+            approvalStatus?: string;
             sortBy?: DogSortField;
             sortDirection?: SortDirection;
-        }) => Promise<{
+        }, context: any) => Promise<{
             totalCount: number;
             hasMore: boolean;
-            items: import("../../db/models/Dog").default[];
+            items: DogAttributes[];
         }>;
         dog: (_: any, { id }: {
-            id: number;
-        }) => Promise<import("../../db/models/Dog").default>;
+            id: string;
+        }, context: any) => Promise<DogAttributes>;
         dogPedigree: (_: any, { dogId, generations }: {
-            dogId: number | string;
+            dogId: string;
             generations?: number;
-        }) => Promise<any>;
+        }, context: any) => Promise<any>;
     };
     Mutation: {
         createDog: (_: any, { input }: {
@@ -68,21 +73,31 @@ declare const dogResolvers: {
         updateDog: (_: any, { id, input }: {
             id: string;
             input: UpdateDogInput;
-        }) => Promise<import("../../db/models/Dog").default | null>;
+        }, context: any) => Promise<import("../../db/models/Dog").default>;
         addDogImage: (_: any, { dogId, input }: {
             dogId: string;
             input: DogImageInput;
         }, context: any) => Promise<import("../../db/models/DogImage").default>;
         deleteDog: (_: any, { id }: {
-            id: number;
+            id: string;
         }, context: any) => Promise<{
             success: boolean;
             message: any;
         }>;
+        approveDog: (_: any, { id, notes }: {
+            id: string;
+            notes?: string;
+        }, context: any) => Promise<import("../../db/models/Dog").default>;
+        declineDog: (_: any, { id, notes }: {
+            id: string;
+            notes?: string;
+        }, context: any) => Promise<import("../../db/models/Dog").default>;
     };
     Dog: {
+        breedObj: (parent: any) => Promise<Breed | null>;
         sire: (parent: any) => Promise<import("../../db/models/Dog").default | null>;
         dam: (parent: any) => Promise<import("../../db/models/Dog").default | null>;
+        approvedBy: (parent: any) => Promise<import("../../db/models/User").default | null>;
         offspring: (parent: any) => Promise<import("../../db/models/Dog").default[]>;
         images: (parent: any) => Promise<import("../../db/models/DogImage").default[]>;
         ownerships: (parent: any) => Promise<import("../../db/models/Ownership").default[]>;

@@ -11,34 +11,57 @@ class DogImage extends sequelize_1.Model {
 const initDogImageModel = (sequelize) => {
     DogImage.init({
         id: {
-            type: sequelize_1.DataTypes.INTEGER,
-            autoIncrement: true,
+            type: sequelize_1.DataTypes.UUID,
+            defaultValue: sequelize_1.DataTypes.UUIDV4,
             primaryKey: true,
         },
         dogId: {
-            type: sequelize_1.DataTypes.INTEGER,
+            type: sequelize_1.DataTypes.UUID,
             allowNull: false,
             references: {
                 model: 'Dogs',
                 key: 'id',
             },
+            field: 'dog_id'
         },
         url: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'url'
+        },
+        imageUrl: {
+            type: sequelize_1.DataTypes.VIRTUAL,
+            get() {
+                return this.getDataValue('url');
+            },
+            set(value) {
+                this.setDataValue('url', value);
+            }
         },
         caption: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'caption'
         },
         isPrimary: {
             type: sequelize_1.DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+            field: 'is_primary'
+        },
+        isProfileImage: {
+            type: sequelize_1.DataTypes.VIRTUAL,
+            get() {
+                return this.getDataValue('isPrimary');
+            },
+            set(value) {
+                this.setDataValue('isPrimary', value);
+            }
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
     }, {
         sequelize,

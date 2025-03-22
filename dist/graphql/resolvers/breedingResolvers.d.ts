@@ -1,3 +1,5 @@
+import { BreedingProgramStatus } from '../../db/models/BreedingProgram';
+import { BreedingPairStatus } from '../../db/models/BreedingPair';
 /**
  * Resolvers for the BreedingProgram and BreedingPair types
  */
@@ -7,14 +9,13 @@ export declare const breedingResolvers: {
             offset?: number;
             limit?: number;
             searchTerm?: string;
-            breederId?: number;
+            breederId?: string;
             breed?: string;
-            status?: import("../../db/models/BreedingProgram").BreedingProgramStatus;
+            status?: BreedingProgramStatus;
             includePrivate?: boolean;
-        }, context: any) => Promise<{
+        }) => Promise<{
             totalCount: number;
-            hasMore: boolean;
-            items: import("../../db/models/BreedingProgram").default[];
+            programs: import("../../db/models/BreedingProgram").default[];
         }>;
         breedingProgram: (_: any, { id }: {
             id: number;
@@ -26,28 +27,31 @@ export declare const breedingResolvers: {
     Mutation: {
         addBreedingPair: (_: any, { input }: {
             input: {
-                programId: number;
-                sireId: number;
-                damId: number;
-                plannedBreedingDate?: Date;
-                compatibilityNotes?: string;
-                status: import("../../db/models/BreedingPair").BreedingPairStatus;
+                programId: string;
+                sireId: string;
+                damId: string;
+                plannedBreedingDate?: Date | string | null;
+                compatibilityNotes?: string | null;
+                status?: BreedingPairStatus;
+                geneticCompatibilityScore?: number | string;
             };
-        }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
-        updateBreedingPairStatus: (_: any, { id, status, notes }: {
-            id: number;
-            status: import("../../db/models/BreedingPair").BreedingPairStatus;
-            notes?: string;
-        }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
+        }, context: any) => Promise<any>;
+        updateBreedingPairStatus: (_: any, { input }: {
+            input: {
+                id: string;
+                status: BreedingPairStatus;
+                notes?: string;
+            };
+        }, context: any) => Promise<any>;
         linkLitterToBreedingPair: (_: any, { breedingPairId, breedingRecordId }: {
-            breedingPairId: number;
-            breedingRecordId: number;
-        }, context: any) => Promise<import("../../db/models/BreedingPair").default | null>;
+            breedingPairId: string;
+            breedingRecordId: string;
+        }, context: any) => Promise<any>;
         createBreedingProgram: (_: any, { input }: {
             input: {
                 name: string;
                 description: string;
-                breederId: number;
+                breederId: string;
                 breed: string;
                 goals: string[];
                 startDate: Date;
@@ -57,11 +61,11 @@ export declare const breedingResolvers: {
                 notes?: string;
                 isPublic: boolean;
                 imageUrl?: string;
-                foundationDogIds: number[];
+                foundationDogIds: string[];
             };
         }, context: any) => Promise<import("../../db/models/BreedingProgram").default>;
         updateBreedingProgram: (_: any, { id, input }: {
-            id: number;
+            id: string;
             input: {
                 name?: string;
                 description?: string;
@@ -69,17 +73,17 @@ export declare const breedingResolvers: {
                 goals?: string[];
                 startDate?: Date;
                 endDate?: Date;
-                status?: import("../../db/models/BreedingProgram").BreedingProgramStatus;
+                status?: BreedingProgramStatus;
                 geneticTestingProtocol?: string;
                 selectionCriteria?: string;
                 notes?: string;
                 isPublic?: boolean;
                 imageUrl?: string;
-                foundationDogIds?: number[];
+                foundationDogIds?: string[];
             };
         }, context: any) => Promise<import("../../db/models/BreedingProgram").default | null>;
         deleteBreedingProgram: (_: any, { id }: {
-            id: number;
+            id: string;
         }, context: any) => Promise<{
             success: boolean;
             message: string;

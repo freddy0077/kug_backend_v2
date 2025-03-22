@@ -1,8 +1,8 @@
 import { Model, Sequelize, Optional } from 'sequelize';
 interface OwnershipAttributes {
-    id: number;
-    ownerId: number;
-    dogId: number;
+    id: string;
+    ownerId: string;
+    dogId: string;
     startDate: Date;
     endDate: Date | null;
     isCurrent: boolean;
@@ -13,9 +13,9 @@ interface OwnershipAttributes {
 interface OwnershipCreationAttributes extends Optional<OwnershipAttributes, 'id' | 'createdAt' | 'updatedAt'> {
 }
 declare class Ownership extends Model<OwnershipAttributes, OwnershipCreationAttributes> implements OwnershipAttributes {
-    id: number;
-    ownerId: number;
-    dogId: number;
+    id: string;
+    ownerId: string;
+    dogId: string;
     startDate: Date;
     endDate: Date | null;
     isCurrent: boolean;

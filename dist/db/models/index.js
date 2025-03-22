@@ -22,6 +22,8 @@ const AuditLog_1 = require("./AuditLog");
 const BreedingProgram_1 = __importDefault(require("./BreedingProgram"));
 const BreedingPair_1 = __importDefault(require("./BreedingPair"));
 const BreedingProgramFoundationDog_1 = __importDefault(require("./BreedingProgramFoundationDog"));
+const Breed_1 = require("./Breed");
+const Litter_1 = require("./Litter");
 const env = process.env.NODE_ENV || 'development';
 // Import the database configuration
 const database_1 = __importDefault(require("../../config/database"));
@@ -53,12 +55,16 @@ const db = {
     AuditLog: (0, AuditLog_1.initAuditLogModel)(sequelize),
     BreedingProgram: BreedingProgram_1.default,
     BreedingPair: BreedingPair_1.default,
-    BreedingProgramFoundationDog: BreedingProgramFoundationDog_1.default
+    BreedingProgramFoundationDog: BreedingProgramFoundationDog_1.default,
+    Breed: Breed_1.Breed,
+    Litter: (0, Litter_1.initLitterModel)(sequelize)
 };
 // Initialize breeding models
 BreedingProgram_1.default.initialize(sequelize);
 BreedingPair_1.default.initialize(sequelize);
 BreedingProgramFoundationDog_1.default.initialize(sequelize);
+// Initialize the Breed model
+Breed_1.Breed.initialize(sequelize);
 // Initialize associations
 Object.keys(db).forEach((modelName) => {
     if (db[modelName]?.associate) {

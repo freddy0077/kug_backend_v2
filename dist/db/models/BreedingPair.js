@@ -38,6 +38,7 @@ class BreedingPair extends sequelize_1.Model {
                     model: 'BreedingPrograms',
                     key: 'id',
                 },
+                field: 'program_id'
             },
             sireId: {
                 type: sequelize_1.DataTypes.INTEGER,
@@ -46,6 +47,7 @@ class BreedingPair extends sequelize_1.Model {
                     model: 'Dogs',
                     key: 'id',
                 },
+                field: 'sire_id'
             },
             damId: {
                 type: sequelize_1.DataTypes.INTEGER,
@@ -54,23 +56,28 @@ class BreedingPair extends sequelize_1.Model {
                     model: 'Dogs',
                     key: 'id',
                 },
+                field: 'dam_id'
             },
             plannedBreedingDate: {
                 type: sequelize_1.DataTypes.DATE,
                 allowNull: true,
+                field: 'planned_breeding_date'
             },
             compatibilityNotes: {
                 type: sequelize_1.DataTypes.TEXT,
                 allowNull: true,
+                field: 'compatibility_notes'
             },
             geneticCompatibilityScore: {
                 type: sequelize_1.DataTypes.FLOAT,
                 allowNull: true,
+                field: 'genetic_compatibility_score'
             },
             status: {
                 type: sequelize_1.DataTypes.ENUM(...Object.values(BreedingPairStatus)),
                 allowNull: false,
                 defaultValue: BreedingPairStatus.PLANNED,
+                field: 'status'
             },
         }, {
             sequelize,

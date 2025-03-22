@@ -31,8 +31,8 @@ class User extends sequelize_1.Model {
 const initUserModel = (sequelize) => {
     User.init({
         id: {
-            type: sequelize_1.DataTypes.INTEGER,
-            autoIncrement: true,
+            type: sequelize_1.DataTypes.UUID,
+            defaultValue: sequelize_1.DataTypes.UUIDV4,
             primaryKey: true,
         },
         email: {
@@ -42,18 +42,22 @@ const initUserModel = (sequelize) => {
             validate: {
                 isEmail: true,
             },
+            field: 'email'
         },
         password: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'password'
         },
         firstName: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'first_name'
         },
         lastName: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'last_name'
         },
         role: {
             type: sequelize_1.DataTypes.STRING,
@@ -61,36 +65,43 @@ const initUserModel = (sequelize) => {
             defaultValue: UserRole.VIEWER,
             validate: {
                 isIn: [Object.values(UserRole)]
-            }
+            },
+            field: 'role'
         },
         profileImageUrl: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'profile_image_url'
         },
         isActive: {
             type: sequelize_1.DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: true,
+            field: 'is_active'
         },
         lastLogin: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: true,
+            field: 'last_login'
         },
         ownerId: {
-            type: sequelize_1.DataTypes.INTEGER,
+            type: sequelize_1.DataTypes.UUID,
             allowNull: true,
             references: {
                 model: 'Owners',
                 key: 'id',
             },
+            field: 'owner_id'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

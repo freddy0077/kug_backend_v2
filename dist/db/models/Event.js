@@ -37,38 +37,47 @@ const initEventModel = (sequelize) => {
         title: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'title'
         },
         description: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: false,
+            field: 'description'
         },
         eventType: {
             type: sequelize_1.DataTypes.ENUM(...Object.values(EventType)),
             allowNull: false,
+            field: 'event_type'
         },
         startDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'start_date'
         },
         endDate: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'end_date'
         },
         location: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'location'
         },
         address: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'address'
         },
         organizer: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'organizer'
         },
         organizerId: {
             type: sequelize_1.DataTypes.INTEGER,
             allowNull: true,
+            field: 'organizer_id'
         },
         contactEmail: {
             type: sequelize_1.DataTypes.STRING,
@@ -76,39 +85,48 @@ const initEventModel = (sequelize) => {
             validate: {
                 isEmail: true,
             },
+            field: 'contact_email'
         },
         contactPhone: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'contact_phone'
         },
         website: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'website'
         },
         registrationUrl: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'registration_url'
         },
         registrationDeadline: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: true,
+            field: 'registration_deadline'
         },
         imageUrl: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'image_url'
         },
         isPublished: {
             type: sequelize_1.DataTypes.BOOLEAN,
             allowNull: false,
             defaultValue: false,
+            field: 'is_published'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

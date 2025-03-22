@@ -21,18 +21,22 @@ const initClubModel = (sequelize) => {
         name: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: false,
+            field: 'name'
         },
         description: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'description'
         },
         logo: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'logo'
         },
         website: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'website'
         },
         contactEmail: {
             type: sequelize_1.DataTypes.STRING,
@@ -40,22 +44,27 @@ const initClubModel = (sequelize) => {
             validate: {
                 isEmail: true,
             },
+            field: 'contact_email'
         },
         contactPhone: {
             type: sequelize_1.DataTypes.STRING,
             allowNull: true,
+            field: 'contact_phone'
         },
         address: {
             type: sequelize_1.DataTypes.TEXT,
             allowNull: true,
+            field: 'address'
         },
         createdAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'created_at'
         },
         updatedAt: {
             type: sequelize_1.DataTypes.DATE,
             allowNull: false,
+            field: 'updated_at'
         },
     }, {
         sequelize,

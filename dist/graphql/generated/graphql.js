@@ -1,6 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserRole = exports.SortDirection = exports.LogLevel = exports.HealthRecordType = exports.EventType = exports.DogSortField = exports.CompetitionSortField = exports.CompetitionCategory = exports.BreedingRole = exports.BreedingProgramStatus = exports.BreedingPairStatus = exports.AuditAction = void 0;
+exports.UserRole = exports.SortDirection = exports.LogLevel = exports.HealthRecordType = exports.EventType = exports.DogSortField = exports.DogRole = exports.CompetitionSortField = exports.CompetitionCategory = exports.BreedingRole = exports.BreedingProgramStatus = exports.BreedingPairStatus = exports.AuditAction = exports.ApprovalStatus = void 0;
+var ApprovalStatus;
+(function (ApprovalStatus) {
+    ApprovalStatus["Approved"] = "APPROVED";
+    ApprovalStatus["Declined"] = "DECLINED";
+    ApprovalStatus["Pending"] = "PENDING";
+})(ApprovalStatus || (exports.ApprovalStatus = ApprovalStatus = {}));
 var AuditAction;
 (function (AuditAction) {
     AuditAction["Approve"] = "APPROVE";
@@ -57,9 +63,16 @@ var CompetitionSortField;
     CompetitionSortField["Points"] = "POINTS";
     CompetitionSortField["Rank"] = "RANK";
 })(CompetitionSortField || (exports.CompetitionSortField = CompetitionSortField = {}));
+var DogRole;
+(function (DogRole) {
+    DogRole["Both"] = "BOTH";
+    DogRole["Dam"] = "DAM";
+    DogRole["Sire"] = "SIRE";
+})(DogRole || (exports.DogRole = DogRole = {}));
 var DogSortField;
 (function (DogSortField) {
     DogSortField["Breed"] = "BREED";
+    DogSortField["CreatedAt"] = "CREATED_AT";
     DogSortField["DateOfBirth"] = "DATE_OF_BIRTH";
     DogSortField["Name"] = "NAME";
     DogSortField["RegistrationNumber"] = "REGISTRATION_NUMBER";

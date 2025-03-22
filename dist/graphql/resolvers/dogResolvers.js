@@ -5,7 +5,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.dogResolvers = void 0;
 const sequelize_1 = require("sequelize");
+const uuid_1 = require("uuid");
 const models_1 = __importDefault(require("../../db/models"));
+const sequelize_2 = require("sequelize");
 // Define enums to match GraphQL schema
 var DogSortField;
 (function (DogSortField) {
@@ -13,17 +15,19 @@ var DogSortField;
     DogSortField["BREED"] = "BREED";
     DogSortField["DATE_OF_BIRTH"] = "DATE_OF_BIRTH";
     DogSortField["REGISTRATION_NUMBER"] = "REGISTRATION_NUMBER";
+    DogSortField["CREATED_AT"] = "CREATED_AT";
 })(DogSortField || (DogSortField = {}));
 var SortDirection;
 (function (SortDirection) {
     SortDirection["Asc"] = "ASC";
     SortDirection["Desc"] = "DESC";
 })(SortDirection || (SortDirection = {}));
-const logger_1 = __importDefault(require("../../utils/logger"));
+const SystemLog_1 = require("../../db/models/SystemLog");
 const AuditLog_1 = require("../../db/models/AuditLog");
 const auth_1 = require("../../utils/auth");
+const apollo_server_express_1 = require("apollo-server-express");
 // Helper function to get a dog's pedigree recursively
-async function fetchDogPedigreeRecursive(dogId, generations, currentGen = 0) {
+async function fetchDogPedigreeRecursive(dogId, generations, currentGen = 0, isAdmin = false) {
     if (currentGen >= generations || !dogId)
         return null;
     const dog = await models_1.default.Dog.findByPk(dogId, {
@@ -31,33 +35,93 @@ async function fetchDogPedigreeRecursive(dogId, generations, currentGen = 0) {
     });
     if (!dog)
         return null;
+    // For ancestors in the pedigree, we still need to check approval status
+    // but this check is only applied for non-root nodes (currentGen > 0)
+    // since root node has already been checked for permission in the resolver
+    if (currentGen > 0 && dog.approvalStatus !== 'APPROVED' && !isAdmin) {
+        return null; // Skip non-approved dogs in pedigree for non-admin users
+    }
     const result = dog.toJSON();
+    // Convert approval status to uppercase if it's lowercase
+    if (result.approvalStatus && typeof result.approvalStatus === 'string') {
+        result.approvalStatus = result.approvalStatus.toUpperCase();
+    }
     if (dog.sireId) {
-        result.sire = await fetchDogPedigreeRecursive(dog.sireId, generations, currentGen + 1);
+        result.sire = await fetchDogPedigreeRecursive(dog.sireId, generations, currentGen + 1, isAdmin);
     }
     if (dog.damId) {
-        result.dam = await fetchDogPedigreeRecursive(dog.damId, generations, currentGen + 1);
+        result.dam = await fetchDogPedigreeRecursive(dog.damId, generations, currentGen + 1, isAdmin);
     }
     return result;
+}
+// Helper function to generate a unique registration number in KUG format
+async function generateRegistrationNumber() {
+    // Get the highest current number
+    const maxDog = await models_1.default.Dog.findOne({
+        order: [['registrationNumber', 'DESC']], // Use the model's attribute name (TypeScript friendly)
+        where: {
+            registrationNumber: {
+                [sequelize_1.Op.like]: 'KUG %'
+            }
+        }
+    });
+    let nextNumber = 1; // Default starting number
+    if (maxDog && maxDog.registrationNumber) {
+        // Extract the numeric part and increment
+        const matches = maxDog.registrationNumber.match(/KUG (\d+)/);
+        if (matches && matches[1]) {
+            const currentNumber = parseInt(matches[1], 10);
+            nextNumber = isNaN(currentNumber) ? 1 : currentNumber + 1;
+        }
+    }
+    // Format with leading zeros to 7 digits
+    return `KUG ${nextNumber.toString().padStart(7, '0')}`;
 }
 const dogResolvers = {
     Query: {
         // Get paginated dogs with optional filtering
-        dogs: async (_, { offset = 0, limit = 20, searchTerm, breed, gender, ownerId, sortBy = DogSortField.NAME, sortDirection = SortDirection.Asc }) => {
+        dogs: async (_, { offset = 0, limit = 20, searchTerm, breed, breedId, gender, ownerId, approvalStatus, sortBy = DogSortField.NAME, sortDirection = SortDirection.Asc }, context) => {
             // Build where clause based on filters
             const whereClause = {};
             if (searchTerm) {
-                whereClause['$or'] = [
-                    { name: { [sequelize_1.Op.iLike]: `%${searchTerm}%` } },
-                    { registrationNumber: { [sequelize_1.Op.iLike]: `%${searchTerm}%` } },
-                    { microchipNumber: { [sequelize_1.Op.iLike]: `%${searchTerm}%` } }
+                // Use a more direct Sequelize syntax that's compatible with PostgreSQL
+                whereClause[sequelize_1.Op.or] = [
+                    sequelize_2.Sequelize.literal(`LOWER("Dog"."name") LIKE LOWER('%${searchTerm}%')`),
+                    sequelize_2.Sequelize.literal(`LOWER("Dog"."registration_number") LIKE LOWER('%${searchTerm}%')`),
+                    sequelize_2.Sequelize.literal(`LOWER("Dog"."microchip_number") LIKE LOWER('%${searchTerm}%')`)
                 ];
             }
             if (breed) {
-                whereClause.breed = { [sequelize_1.Op.iLike]: `%${breed}%` };
+                whereClause.breed = sequelize_2.Sequelize.literal(`LOWER("Dog"."breed") LIKE LOWER('%${breed}%')`);
+            }
+            if (breedId) {
+                whereClause.breed_id = breedId;
             }
             if (gender) {
                 whereClause.gender = gender.toLowerCase();
+            }
+            // Handle approval status filtering
+            let user = null;
+            try {
+                user = await (0, auth_1.checkAuth)(context);
+            }
+            catch {
+                // User is not authenticated, only show approved dogs
+                whereClause.approval_status = 'APPROVED';
+            }
+            // If user is not an admin, they can only see approved dogs
+            if (user && user.role !== 'ADMIN') {
+                whereClause.approval_status = 'APPROVED';
+            }
+            else if (user && user.role === 'ADMIN') {
+                // Admin can filter by approval status
+                if (approvalStatus) {
+                    whereClause.approval_status = approvalStatus;
+                }
+            }
+            else {
+                // Non-authenticated users can only see approved dogs
+                whereClause.approval_status = 'APPROVED';
             }
             let ownerInclude = undefined;
             if (ownerId) {
@@ -70,6 +134,16 @@ const dogResolvers = {
                     },
                     required: true
                 };
+            }
+            // Include Breed model for relationship
+            const includes = [];
+            includes.push({
+                model: models_1.default.Breed,
+                as: 'breedObj',
+                required: false
+            });
+            if (ownerInclude) {
+                includes.push(ownerInclude);
             }
             // Determine sort ordering with proper typing for Sequelize
             let order;
@@ -86,39 +160,93 @@ const dogResolvers = {
                 case DogSortField.REGISTRATION_NUMBER:
                     order = [['registrationNumber', sortDirection]];
                     break;
+                case DogSortField.CREATED_AT:
+                    order = [['createdAt', sortDirection]];
+                    break;
                 default:
                     order = [['name', sortDirection]];
             }
             // Query with pagination
             const { count, rows } = await models_1.default.Dog.findAndCountAll({
                 where: whereClause,
-                include: ownerInclude ? [ownerInclude] : [],
+                include: includes,
                 offset,
                 limit,
                 order,
                 distinct: true
             });
+            // Convert any lowercase approval status values to uppercase to match the GraphQL enum
+            const normalizedRows = rows.map(dog => {
+                // Create a new object to avoid modifying the Sequelize model directly
+                const dogJson = dog.toJSON();
+                // Convert approval status to uppercase if it's lowercase
+                if (dogJson.approvalStatus && typeof dogJson.approvalStatus === 'string') {
+                    dogJson.approvalStatus = dogJson.approvalStatus.toUpperCase();
+                }
+                return dogJson;
+            });
             return {
                 totalCount: count,
                 hasMore: offset + rows.length < count,
-                items: rows
+                items: normalizedRows
             };
         },
         // Get a single dog by ID
-        dog: async (_, { id }) => {
-            const dog = await models_1.default.Dog.findByPk(id);
-            if (!dog) {
-                throw new Error('DOG_NOT_FOUND');
+        dog: async (_, { id }, context) => {
+            try {
+                const dog = await models_1.default.Dog.findByPk(id);
+                if (!dog) {
+                    throw new apollo_server_express_1.UserInputError('DOG_NOT_FOUND');
+                }
+                // Check if user is allowed to view this dog based on approval status
+                let user = null;
+                try {
+                    user = await (0, auth_1.checkAuth)(context);
+                }
+                catch {
+                    // User is not authenticated
+                }
+                // Only admin users can see non-approved dogs
+                if (dog.approvalStatus !== 'APPROVED' && (!user || user.role !== 'ADMIN')) {
+                    throw new apollo_server_express_1.ForbiddenError('This dog record is not available');
+                }
+                // Create a new object to avoid modifying the Sequelize model directly
+                const dogJson = dog.toJSON();
+                // Convert approval status to uppercase if it's lowercase
+                if (dogJson.approvalStatus && typeof dogJson.approvalStatus === 'string') {
+                    dogJson.approvalStatus = dogJson.approvalStatus.toUpperCase();
+                }
+                return dogJson;
             }
-            return dog;
+            catch (error) {
+                console.error(`Error fetching dog with ID ${id}:`, error);
+                throw error;
+            }
         },
         // Get a dog's pedigree with specified generations
-        dogPedigree: async (_, { dogId, generations = 3 }) => {
-            // Safely convert dogId to number if it's passed as a string
-            const dogIdNumber = typeof dogId === 'string' ? parseInt(dogId, 10) : dogId;
-            const root = await fetchDogPedigreeRecursive(dogIdNumber, generations);
+        dogPedigree: async (_, { dogId, generations = 3 }, context) => {
+            // First check if the dog exists and has proper approval status
+            const dog = await models_1.default.Dog.findByPk(dogId);
+            if (!dog) {
+                throw new apollo_server_express_1.UserInputError('DOG_NOT_FOUND');
+            }
+            // Check if user is allowed to view this dog based on approval status
+            let user = null;
+            try {
+                user = await (0, auth_1.checkAuth)(context);
+            }
+            catch {
+                // User is not authenticated
+            }
+            // Only admin users can see non-approved dogs
+            if (dog.approvalStatus !== 'APPROVED' && (!user || user.role !== 'ADMIN')) {
+                throw new apollo_server_express_1.ForbiddenError('This dog pedigree is not available');
+            }
+            // Fetch the pedigree data once we've confirmed access is allowed
+            const isAdmin = !!(user && user.role === 'ADMIN'); // Ensure it's a boolean
+            const root = await fetchDogPedigreeRecursive(dogId, generations, 0, isAdmin);
             if (!root) {
-                throw new Error('DOG_NOT_FOUND');
+                throw new Error('Error fetching pedigree data');
             }
             return root;
         }
@@ -130,133 +258,164 @@ const dogResolvers = {
             const user = await (0, auth_1.checkAuth)(context);
             try {
                 // Validate required fields
-                if (!input.name || !input.breed || !input.gender || !input.registrationNumber) {
+                if (!input.name || !input.breed || !input.gender) {
                     throw new Error('INVALID_DOG_DATA');
                 }
-                // Check if dateOfBirth is a valid Date, never undefined
-                if (!input.dateOfBirth) {
-                    throw new Error('INVALID_DATE_FORMAT: Date of birth is required');
+                // Generate a unique registration number
+                const registrationNumber = await generateRegistrationNumber();
+                // If breedId is provided, verify it exists
+                if (input.breedId) {
+                    const breed = await models_1.default.Breed.findByPk(input.breedId);
+                    if (!breed) {
+                        throw new Error(`Breed with ID ${input.breedId} not found`);
+                    }
+                    // Set the breed_id field for the database
+                    input.breed_id = input.breedId;
                 }
-                // Ensure dateOfBirth is a Date object
-                const dateOfBirth = new Date(input.dateOfBirth);
-                if (isNaN(dateOfBirth.getTime())) {
-                    throw new Error('INVALID_DATE_FORMAT: Invalid date of birth');
-                }
-                // Convert dateOfDeath to Date if provided
-                let dateOfDeath = null;
-                if (input.dateOfDeath) {
-                    dateOfDeath = new Date(input.dateOfDeath);
-                    if (isNaN(dateOfDeath.getTime())) {
-                        throw new Error('INVALID_DATE_FORMAT: Invalid date of death');
+                else {
+                    // If breedId is not provided, try to find or create a breed by name
+                    try {
+                        const [breed] = await models_1.default.Breed.findOrCreate({
+                            where: { name: input.breed },
+                            defaults: {
+                                name: input.breed,
+                                created_at: new Date(),
+                                updated_at: new Date()
+                            }
+                        });
+                        input.breed_id = breed.id;
+                    }
+                    catch (error) {
+                        console.error('Error finding or creating breed:', error);
+                        // Continue without setting breed_id
                     }
                 }
-                // Validate gender
-                if (!['male', 'female'].includes(input.gender.toLowerCase())) {
-                    throw new Error('INVALID_DOG_DATA: Gender must be either male or female');
-                }
-                // Check if registration number already exists
-                const existingDog = await models_1.default.Dog.findOne({
-                    where: { registrationNumber: input.registrationNumber }
+                // Generate UUID for the dog
+                const dogId = (0, uuid_1.v4)();
+                // Create the dog with the generated UUID, registration number, and pending approval status
+                const newDog = await models_1.default.Dog.create({
+                    ...input,
+                    id: dogId,
+                    registrationNumber: registrationNumber,
+                    approvalStatus: 'PENDING' // Set initial status to pending
                 });
-                if (existingDog) {
-                    throw new Error('REGISTRATION_NUMBER_EXISTS');
-                }
-                // Create the dog with explicit type handling for optional fields
-                const dogData = {
-                    name: input.name,
-                    breed: input.breed,
-                    gender: input.gender.toLowerCase(),
-                    dateOfBirth, // Ensure this is always a valid Date
-                    dateOfDeath,
-                    registrationNumber: input.registrationNumber,
-                    color: input.color || null,
-                    microchipNumber: input.microchipNumber || null,
-                    titles: input.titles || [],
-                    isNeutered: input.isNeutered || null,
-                    height: input.height || null,
-                    weight: input.weight || null,
-                    biography: input.biography || null,
-                    mainImageUrl: input.mainImageUrl || null,
-                    sireId: input.sireId || null,
-                    damId: input.damId || null
-                };
-                // Type assertion to handle optional fields
-                const newDog = await models_1.default.Dog.create(dogData);
-                // Create ownership record
+                // Add ownership association if ownerId is provided
                 if (input.ownerId) {
+                    // Generate UUID for the ownership
+                    const ownershipId = (0, uuid_1.v4)();
+                    // Create the ownership with UUID
+                    // Use only isCurrent property which will map to is_current in database due to underscored: true setting
                     await models_1.default.Ownership.create({
+                        id: ownershipId,
                         dogId: newDog.id,
                         ownerId: input.ownerId,
                         startDate: new Date(),
-                        isCurrent: true
+                        isCurrent: true // This will be mapped to is_current in the database
                     });
                 }
-                // Log dog creation in audit trail
-                await logger_1.default.logAuditTrail(AuditLog_1.AuditAction.CREATE, 'Dog', newDog.id.toString(), user.id, undefined, JSON.stringify({
-                    name: newDog.name,
-                    breed: newDog.breed,
-                    registrationNumber: newDog.registrationNumber,
-                    gender: newDog.gender,
-                    dateOfBirth: newDog.dateOfBirth
-                }), context.req?.ip, 'Dog profile created');
+                // Log the creation in the audit trail
+                await models_1.default.AuditLog.create({
+                    timestamp: new Date(),
+                    action: AuditLog_1.AuditAction.CREATE,
+                    entityType: 'Dog',
+                    entityId: newDog.id, // No need to convert UUID to string
+                    userId: context.user?.id,
+                    newState: JSON.stringify(newDog)
+                });
+                // Log to system logs
+                await models_1.default.SystemLog.create({
+                    timestamp: new Date(),
+                    level: SystemLog_1.LogLevel.INFO,
+                    message: 'Dog created',
+                    source: 'DogResolver',
+                    details: JSON.stringify({
+                        dogId: newDog.id,
+                        name: newDog.name,
+                        userId: context.user?.id
+                    }),
+                    userId: context.user?.id
+                });
                 return newDog;
             }
             catch (error) {
-                throw new Error(error.message || 'Error creating dog');
+                console.error('Error creating dog:', error);
+                throw error;
             }
         },
         // Update an existing dog
-        updateDog: async (_, { id, input }) => {
+        updateDog: async (_, { id, input }, context) => {
+            // Get authenticated user for logging
+            const user = await (0, auth_1.checkAuth)(context);
             try {
+                // Find the dog to update
                 const dog = await models_1.default.Dog.findByPk(id);
                 if (!dog) {
                     throw new Error('DOG_NOT_FOUND');
                 }
-                // Prepare update data
-                const updateData = { ...input };
-                // Validate and convert dateOfBirth if provided
-                if (input.dateOfBirth) {
-                    const dateOfBirth = new Date(input.dateOfBirth);
-                    if (isNaN(dateOfBirth.getTime())) {
-                        throw new Error('INVALID_DATE_FORMAT: Invalid date of birth');
+                // Store previous state for audit logging
+                const originalDog = JSON.stringify(dog);
+                // Update the breed_id if breedId is provided
+                if (input.breedId !== undefined) {
+                    // Verify the breed exists
+                    const breed = await models_1.default.Breed.findByPk(input.breedId);
+                    if (!breed && input.breedId !== null) {
+                        throw new Error(`Breed with ID ${input.breedId} not found`);
                     }
-                    updateData.dateOfBirth = dateOfBirth;
-                }
-                // Validate and convert dateOfDeath if provided
-                if (input.dateOfDeath) {
-                    const dateOfDeath = new Date(input.dateOfDeath);
-                    if (isNaN(dateOfDeath.getTime())) {
-                        throw new Error('INVALID_DATE_FORMAT: Invalid date of death');
-                    }
-                    updateData.dateOfDeath = dateOfDeath;
-                }
-                else if (input.dateOfDeath === null) {
-                    // Allow setting dateOfDeath to null explicitly
-                    updateData.dateOfDeath = null;
-                }
-                // Validate gender if provided
-                if (input.gender && !['male', 'female'].includes(input.gender.toLowerCase())) {
-                    throw new Error('INVALID_DOG_DATA: Gender must be either male or female');
-                }
-                // Check registration number if changing
-                if (input.registrationNumber && input.registrationNumber !== dog.registrationNumber) {
-                    const existingDog = await models_1.default.Dog.findOne({
-                        where: {
-                            registrationNumber: input.registrationNumber,
-                            id: { [sequelize_1.Op.ne]: id }
-                        }
-                    });
-                    if (existingDog) {
-                        throw new Error('REGISTRATION_NUMBER_EXISTS');
+                    input.breed_id = input.breedId;
+                    // If breed name is not provided but breedId is, update the breed name
+                    if (!input.breed && breed) {
+                        input.breed = breed.name;
                     }
                 }
-                // Update dog
-                await dog.update(updateData);
-                // Refresh data
-                return await models_1.default.Dog.findByPk(Number(id));
+                else if (input.breed && input.breed !== dog.breed) {
+                    // If only breed name is provided (and changed), try to find or create a breed
+                    try {
+                        const [breed] = await models_1.default.Breed.findOrCreate({
+                            where: { name: input.breed },
+                            defaults: {
+                                name: input.breed,
+                                created_at: new Date(),
+                                updated_at: new Date()
+                            }
+                        });
+                        input.breed_id = breed.id;
+                    }
+                    catch (error) {
+                        console.error('Error finding or creating breed:', error);
+                        // Continue without setting breed_id
+                    }
+                }
+                // Update the dog
+                // Cast input to any to avoid type checking issues with ID field types
+                await dog.update(input);
+                // Log the update in the audit trail
+                await models_1.default.AuditLog.create({
+                    timestamp: new Date(),
+                    action: AuditLog_1.AuditAction.UPDATE,
+                    entityType: 'Dog',
+                    entityId: dog.id, // No need to convert UUID to string
+                    userId: context.user?.id,
+                    previousState: originalDog,
+                    newState: JSON.stringify(dog)
+                });
+                // Log to system logs
+                await models_1.default.SystemLog.create({
+                    timestamp: new Date(),
+                    level: SystemLog_1.LogLevel.INFO,
+                    message: 'Dog updated',
+                    source: 'DogResolver',
+                    details: JSON.stringify({
+                        dogId: dog.id,
+                        name: dog.name,
+                        userId: context.user?.id
+                    }),
+                    userId: context.user?.id
+                });
+                return dog;
             }
             catch (error) {
-                throw new Error(error.message || 'Error updating dog');
+                console.error('Error updating dog:', error);
+                throw error;
             }
         },
         // Add an image to a dog
@@ -274,12 +433,16 @@ const dogResolvers = {
                     // Also update the mainImageUrl in the dog record
                     await dog.update({ mainImageUrl: input.imageUrl || input.url || '' });
                 }
-                // Create the image
+                // Create the image with generated UUID
+                const imageId = (0, uuid_1.v4)();
                 const image = await models_1.default.DogImage.create({
-                    dogId: parseInt(dogId, 10), // Convert string to number
+                    id: imageId,
+                    dogId: dogId, // Using UUID string
                     url: input.imageUrl || input.url || '', // Use imageUrl with fallback to url
+                    imageUrl: input.imageUrl || input.url || '', // Set both URL versions for consistency
                     caption: input.caption || null,
-                    isPrimary: input.isPrimary || false
+                    isPrimary: input.isPrimary || false,
+                    isProfileImage: input.isPrimary || false // Use same value as isPrimary to maintain consistency
                 });
                 return image;
             }
@@ -309,10 +472,136 @@ const dogResolvers = {
                     message: error.message || 'Error deleting dog'
                 };
             }
+        },
+        // Approve a dog
+        approveDog: async (_, { id, notes }, context) => {
+            // Get authenticated user for authorization check
+            const user = await (0, auth_1.checkAuth)(context);
+            // Check if user has admin role
+            if (user.role !== 'ADMIN') {
+                throw new apollo_server_express_1.ForbiddenError('Only administrators can approve dogs');
+            }
+            try {
+                // Find the dog to approve
+                const dog = await models_1.default.Dog.findByPk(id);
+                if (!dog) {
+                    throw new apollo_server_express_1.UserInputError('DOG_NOT_FOUND');
+                }
+                // Check if the dog is already approved
+                if (dog.approvalStatus === 'APPROVED') {
+                    throw new apollo_server_express_1.UserInputError('Dog is already approved');
+                }
+                // Store previous state for audit logging
+                const originalDog = JSON.stringify(dog);
+                // Update the dog with approval information
+                await dog.update({
+                    approvalStatus: 'APPROVED',
+                    approvedBy: user.id.toString(), // Convert to string to match the model's type
+                    approvalDate: new Date(),
+                    approvalNotes: notes || null
+                });
+                // Log the approval in the audit trail
+                await models_1.default.AuditLog.create({
+                    timestamp: new Date(),
+                    action: AuditLog_1.AuditAction.APPROVE,
+                    entityType: 'Dog',
+                    entityId: id,
+                    userId: user.id,
+                    previousState: originalDog,
+                    newState: JSON.stringify(dog)
+                });
+                // Log to system logs
+                await models_1.default.SystemLog.create({
+                    timestamp: new Date(),
+                    level: SystemLog_1.LogLevel.INFO,
+                    message: 'Dog approved',
+                    source: 'DogResolver',
+                    details: JSON.stringify({
+                        dogId: dog.id,
+                        name: dog.name,
+                        userId: user.id
+                    }),
+                    userId: user.id
+                });
+                return dog;
+            }
+            catch (error) {
+                console.error('Error approving dog:', error);
+                throw error;
+            }
+        },
+        // Decline a dog
+        declineDog: async (_, { id, notes }, context) => {
+            // Get authenticated user for authorization check
+            const user = await (0, auth_1.checkAuth)(context);
+            // Check if user has admin role
+            if (user.role !== 'ADMIN') {
+                throw new apollo_server_express_1.ForbiddenError('Only administrators can decline dogs');
+            }
+            try {
+                // Find the dog to decline
+                const dog = await models_1.default.Dog.findByPk(id);
+                if (!dog) {
+                    throw new apollo_server_express_1.UserInputError('DOG_NOT_FOUND');
+                }
+                // Check if the dog is already declined
+                if (dog.approvalStatus === 'DECLINED') {
+                    throw new apollo_server_express_1.UserInputError('Dog is already declined');
+                }
+                // Store previous state for audit logging
+                const originalDog = JSON.stringify(dog);
+                // Update the dog with decline information
+                await dog.update({
+                    approvalStatus: 'DECLINED',
+                    approvedBy: user.id.toString(), // Convert to string to match the model's type
+                    approvalDate: new Date(),
+                    approvalNotes: notes || null
+                });
+                // Log the decline in the audit trail
+                await models_1.default.AuditLog.create({
+                    timestamp: new Date(),
+                    action: AuditLog_1.AuditAction.REJECT,
+                    entityType: 'Dog',
+                    entityId: id,
+                    userId: user.id,
+                    previousState: originalDog,
+                    newState: JSON.stringify(dog)
+                });
+                // Log to system logs
+                await models_1.default.SystemLog.create({
+                    timestamp: new Date(),
+                    level: SystemLog_1.LogLevel.INFO,
+                    message: 'Dog declined',
+                    source: 'DogResolver',
+                    details: JSON.stringify({
+                        dogId: dog.id,
+                        name: dog.name,
+                        userId: user.id
+                    }),
+                    userId: user.id
+                });
+                return dog;
+            }
+            catch (error) {
+                console.error('Error declining dog:', error);
+                throw error;
+            }
         }
     },
     // Field resolvers
     Dog: {
+        // Resolve the breedObj field
+        breedObj: async (parent) => {
+            if (!parent.breed_id)
+                return null;
+            try {
+                return await models_1.default.Breed.findByPk(parent.breed_id);
+            }
+            catch (error) {
+                console.error(`Error fetching breed for dog ${parent.id}:`, error);
+                return null;
+            }
+        },
         // Resolve the sire field
         sire: async (parent) => {
             if (!parent.sireId)
@@ -324,6 +613,18 @@ const dogResolvers = {
             if (!parent.damId)
                 return null;
             return await models_1.default.Dog.findByPk(parent.damId);
+        },
+        // Resolve the approvedBy field
+        approvedBy: async (parent) => {
+            if (!parent.approvedBy)
+                return null;
+            try {
+                return await models_1.default.User.findByPk(parent.approvedBy);
+            }
+            catch (error) {
+                console.error(`Error fetching approver for dog ${parent.id}:`, error);
+                return null;
+            }
         },
         // Resolve offspring
         offspring: async (parent) => {

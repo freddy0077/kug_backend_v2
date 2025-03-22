@@ -15,7 +15,7 @@ export interface BreedingPairAttributes {
     damId: number;
     plannedBreedingDate?: Date;
     compatibilityNotes?: string;
-    geneticCompatibilityScore?: number;
+    geneticCompatibilityScore?: string;
     status: BreedingPairStatus;
     createdAt?: Date;
     updatedAt?: Date;
@@ -29,7 +29,7 @@ declare class BreedingPair extends Model<BreedingPairAttributes, BreedingPairCre
     damId: number;
     plannedBreedingDate?: Date;
     compatibilityNotes?: string;
-    geneticCompatibilityScore?: number;
+    geneticCompatibilityScore?: string;
     status: BreedingPairStatus;
     readonly createdAt: Date;
     readonly updatedAt: Date;

@@ -17,6 +17,8 @@ import { initAuditLogModel } from './AuditLog';
 import BreedingProgram from './BreedingProgram';
 import BreedingPair from './BreedingPair';
 import BreedingProgramFoundationDog from './BreedingProgramFoundationDog';
+import { Breed } from './Breed';
+import { initLitterModel } from './Litter';
 interface DB {
     sequelize: Sequelize;
     Sequelize: typeof Sequelize;
@@ -38,6 +40,8 @@ interface DB {
     BreedingProgram: typeof BreedingProgram;
     BreedingPair: typeof BreedingPair;
     BreedingProgramFoundationDog: typeof BreedingProgramFoundationDog;
+    Breed: typeof Breed;
+    Litter: ReturnType<typeof initLitterModel>;
     [key: string]: any;
 }
 declare const db: DB;

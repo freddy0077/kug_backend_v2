@@ -526,6 +526,7 @@ const typeDefs = gql`
     status: BreedingPairStatus!
     createdAt: DateTime!
     updatedAt: DateTime!
+    geneticAnalysis: GeneticAnalysis
   }
 
   type PaginatedBreedingPrograms {
@@ -1077,6 +1078,142 @@ const typeDefs = gql`
   }
   
   # Queries
+  # Dog genetic relationship extension
+  extend type Dog {
+    genotypes: [DogGenotype!]
+  }
+
+  # Genetic trait inheritance types
+  type GeneticTrait {
+    id: ID!
+    name: String!
+    description: String
+    inheritancePattern: InheritancePattern!
+    alleles: [Allele!]!
+    breedPrevalence: [BreedTraitPrevalence!]
+    healthImplications: String
+    testingOptions: [GeneticTest!]
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type Allele {
+    id: ID!
+    symbol: String!
+    name: String!
+    description: String
+    dominant: Boolean!
+    traitId: ID!
+    trait: GeneticTrait!
+  }
+
+  type DogGenotype {
+    id: ID!
+    dogId: ID!
+    dog: Dog
+    traitId: ID!
+    trait: GeneticTrait!
+    genotype: String!
+    testMethod: GeneticTestMethod
+    testDate: DateTime
+    confidence: Float
+    notes: String
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type BreedTraitPrevalence {
+    id: ID!
+    breedId: ID!
+    breed: Breed!
+    traitId: ID!
+    trait: GeneticTrait!
+    frequency: Float!
+    studyReference: String
+    notes: String
+  }
+
+  type GeneticTest {
+    id: ID!
+    name: String!
+    provider: String!
+    description: String
+    traits: [GeneticTrait!]!
+    accuracy: Float
+    cost: Float
+    turnaroundTime: Int
+    sampleType: String
+    url: String
+  }
+
+  type GeneticAnalysis {
+    id: ID!
+    breedingPairId: ID
+    sireId: ID!
+    sire: Dog!
+    damId: ID!
+    dam: Dog!
+    traitPredictions: [TraitPrediction!]!
+    overallCompatibility: Float!
+    riskFactors: [GeneticRiskFactor!]
+    recommendations: String
+    createdAt: DateTime!
+    updatedAt: DateTime
+  }
+
+  type TraitPrediction {
+    id: ID!
+    analysisId: ID!
+    traitId: ID!
+    trait: GeneticTrait!
+    possibleGenotypes: [GenotypeOutcome!]!
+    notes: String
+  }
+
+  type GenotypeOutcome {
+    genotype: String!
+    probability: Float!
+    phenotype: String!
+    isCarrier: Boolean!
+    healthImplications: String
+  }
+
+  type GeneticRiskFactor {
+    traitId: ID!
+    trait: GeneticTrait!
+    riskLevel: RiskLevel!
+    description: String!
+    recommendations: String
+  }
+
+  enum InheritancePattern {
+    AUTOSOMAL_DOMINANT
+    AUTOSOMAL_RECESSIVE
+    X_LINKED_DOMINANT
+    X_LINKED_RECESSIVE
+    POLYGENIC
+    CODOMINANT
+    INCOMPLETE_DOMINANCE
+    EPISTASIS
+    MATERNAL
+  }
+
+  enum GeneticTestMethod {
+    DNA_TEST
+    PEDIGREE_ANALYSIS
+    PHENOTYPE_EXAMINATION
+    CARRIER_TESTING
+    LINKAGE_TESTING
+  }
+
+  enum RiskLevel {
+    NONE
+    LOW
+    MEDIUM
+    HIGH
+    CRITICAL
+  }
+
   type Query {
     breeds(
       offset: Int = 0
@@ -1267,6 +1404,18 @@ const typeDefs = gql`
     ): PaginatedUsers!
     
     user(id: ID!): User
+
+    # Genetic calculator queries
+    geneticTraits(breedId: ID): [GeneticTrait!]!
+    geneticTrait(id: ID!): GeneticTrait
+    dogGenotypes(dogId: ID!): [DogGenotype!]!
+    breedGeneticProfile(breedId: ID!): [BreedTraitPrevalence!]!
+    geneticTests: [GeneticTest!]!
+    
+    # Primary calculator functions
+    calculateGeneticCompatibility(sireId: ID!, damId: ID!): GeneticAnalysis!
+    predictOffspringTraits(sireId: ID!, damId: ID!, traitIds: [ID!]): [TraitPrediction!]!
+    recommendBreedingPairs(dogId: ID!, count: Int = 5): [BreedingPair!]!
   }
 
   # Mutations
@@ -1406,6 +1555,25 @@ const typeDefs = gql`
     registerDogForEvent(eventId: ID!, dogId: ID!): EventRegistration!
 
     publishEvent(id: ID!): Event!
+
+    # Genetic calculator mutations
+    createGeneticTrait(name: String!, description: String, inheritancePattern: InheritancePattern!, healthImplications: String): GeneticTrait!
+    updateGeneticTrait(id: ID!, name: String, description: String, inheritancePattern: InheritancePattern, healthImplications: String): GeneticTrait!
+    deleteGeneticTrait(id: ID!): Boolean!
+    
+    createAllele(traitId: ID!, symbol: String!, name: String!, description: String, dominant: Boolean!): Allele!
+    updateAllele(id: ID!, symbol: String, name: String, description: String, dominant: Boolean): Allele!
+    deleteAllele(id: ID!): Boolean!
+    
+    recordDogGenotype(dogId: ID!, traitId: ID!, genotype: String!, testMethod: GeneticTestMethod, testDate: DateTime, confidence: Float, notes: String): DogGenotype!
+    updateDogGenotype(id: ID!, genotype: String, testMethod: GeneticTestMethod, testDate: DateTime, confidence: Float, notes: String): DogGenotype!
+    deleteDogGenotype(id: ID!): Boolean!
+    
+    createBreedTraitPrevalence(breedId: ID!, traitId: ID!, frequency: Float!, studyReference: String, notes: String): BreedTraitPrevalence!
+    updateBreedTraitPrevalence(id: ID!, frequency: Float, studyReference: String, notes: String): BreedTraitPrevalence!
+    deleteBreedTraitPrevalence(id: ID!): Boolean!
+    
+    saveGeneticAnalysis(sireId: ID!, damId: ID!, breedingPairId: ID, recommendations: String): GeneticAnalysis!
   }
 `;
 
