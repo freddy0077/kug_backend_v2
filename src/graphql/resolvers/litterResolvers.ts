@@ -17,6 +17,33 @@ const validateDogGender = (gender: string): string => {
   return normalizedGender;
 };
 
+// Helper function to generate a unique registration number for litters in KUG-L format
+async function generateLitterRegistrationNumber(): Promise<string> {
+  // Get the highest current number
+  const maxLitter = await db.Litter.findOne({
+    order: [['registrationNumber', 'DESC']],
+    where: {
+      registrationNumber: {
+        [Op.like]: 'KUG-L %'
+      }
+    }
+  });
+  
+  let nextNumber = 1; // Default starting number
+  
+  if (maxLitter && maxLitter.registrationNumber) {
+    // Extract the numeric part and increment
+    const matches = maxLitter.registrationNumber.match(/KUG-L (\d+)/);
+    if (matches && matches[1]) {
+      const currentNumber = parseInt(matches[1], 10);
+      nextNumber = isNaN(currentNumber) ? 1 : currentNumber + 1;
+    }
+  }
+  
+  // Format with leading zeros to 5 digits
+  return `KUG-L ${nextNumber.toString().padStart(5, '0')}`;
+};
+
 // Extended interface for LitterInput that includes puppyDetails
 interface LitterInput extends LitterAttributes {
   puppyDetails?: Array<{
@@ -242,13 +269,18 @@ const litterMutations = {
         throw new UserInputError('Dam must be a female dog');
       }
 
+      // Generate a registration number if not provided
+      let registrationNumber = input.registrationNumber && input.registrationNumber.trim() !== '' 
+        ? input.registrationNumber 
+        : await generateLitterRegistrationNumber();
+
       // Create the litter record
       const newLitter = await db.Litter.create({
         id: uuidv4(),
         sireId,
         damId,
         litterName,
-        registrationNumber: input.registrationNumber && input.registrationNumber.trim() !== '' ? input.registrationNumber : undefined,
+        registrationNumber,
         breedingRecordId: input.breedingRecordId && input.breedingRecordId.trim() !== '' ? input.breedingRecordId : undefined, // Convert empty string to undefined
         whelpingDate,
         totalPuppies,
@@ -261,20 +293,27 @@ const litterMutations = {
       console.log(`Creating litter ${litterName} with puppy details:`, input.puppyDetails || 'No puppy details provided');
       
       if (input.puppyDetails && input.puppyDetails.length > 0) {
-        const puppies = input.puppyDetails.map((puppy: any) => ({
-          id: uuidv4(),
-          name: puppy.name,
-          breed: sire.breed, // Inherit breed from parents
-          breedId: sire.breedId,
-          gender: validateDogGender(puppy.gender), 
-          dateOfBirth: new Date(whelpingDate), // Use the litter's whelping date
-          color: puppy.color || null,
-          microchipNumber: puppy.microchipNumber || null,
-          registrationNumber: `${newLitter.registrationNumber || 'L'}-${uuidv4().substring(0, 6)}`,
-          litterId: newLitter.id,
-          sireId,
-          damId,
-          approvalStatus: 'PENDING', // Add default approval status
+        // Prepare puppies for creation
+        const puppies = await Promise.all(input.puppyDetails.map(async (puppy: any, index: number) => {
+          // Generate a unique registration number for each puppy
+          const puppyNumber = (index + 1).toString().padStart(2, '0');
+          const puppyRegistrationNumber = `${newLitter.registrationNumber}-P${puppyNumber}`;
+          
+          return {
+            id: uuidv4(),
+            name: puppy.name,
+            breed: sire.breed, // Inherit breed from parents
+            breedId: sire.breedId,
+            gender: validateDogGender(puppy.gender), 
+            dateOfBirth: new Date(whelpingDate), // Use the litter's whelping date
+            color: puppy.color || null,
+            microchipNumber: puppy.microchipNumber || null,
+            registrationNumber: puppyRegistrationNumber,
+            litterId: newLitter.id,
+            sireId,
+            damId,
+            approvalStatus: 'PENDING', // Add default approval status
+          };
         }));
 
         console.log(`Creating ${puppies.length} puppies for litter ${newLitter.id}`);
@@ -341,22 +380,33 @@ const litterMutations = {
         throw new Error('Cannot find litter parents');
       }
 
-      // Create puppy records
-      const puppyRecords = puppies.map((puppy) => ({
-        id: uuidv4(),
-        name: puppy.name,
-        breed: sire.breed, // Inherit breed from parents
-        breedId: sire.breedId,
-        gender: validateDogGender(puppy.gender),
-        dateOfBirth: new Date(litter.whelpingDate), // Use the litter's whelping date
-        color: puppy.color || null,
-        microchipNumber: puppy.microchipNumber || null,
-        registrationNumber: `${litter.registrationNumber || 'L'}-${uuidv4().substring(0, 6)}`,
-        isNeutered: puppy.isNeutered || false,
-        litterId: litter.id,
-        sireId: litter.sireId,
-        damId: litter.damId,
-        approvalStatus: 'PENDING', // Add default approval status
+      // First, get current number of puppies in this litter to calculate proper sequence numbers
+      const existingPuppiesCount = await db.Dog.count({
+        where: { litterId: litter.id }
+      });
+
+      // Create puppy records with sequential registration numbers
+      const puppyRecords = await Promise.all(puppies.map(async (puppy, index) => {
+        // Generate a unique registration number for each puppy that continues the sequence
+        const puppyNumber = (existingPuppiesCount + index + 1).toString().padStart(2, '0');
+        const puppyRegistrationNumber = `${litter.registrationNumber}-P${puppyNumber}`;
+
+        return {
+          id: uuidv4(),
+          name: puppy.name,
+          breed: sire.breed, // Inherit breed from parents
+          breedId: sire.breedId,
+          gender: validateDogGender(puppy.gender),
+          dateOfBirth: new Date(litter.whelpingDate), // Use the litter's whelping date
+          color: puppy.color || null,
+          microchipNumber: puppy.microchipNumber || null,
+          registrationNumber: puppyRegistrationNumber,
+          isNeutered: puppy.isNeutered || false,
+          litterId: litter.id,
+          sireId: litter.sireId,
+          damId: litter.damId,
+          approvalStatus: 'PENDING', // Add default approval status
+        };
       }));
 
       const createdPuppies = await db.Dog.bulkCreate(puppyRecords);
